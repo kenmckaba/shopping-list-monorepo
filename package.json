@@ -1,0 +1,41 @@
+{
+  "name": "shopping-list-monorepo",
+  "version": "1.0.0",
+  "description": "A full-stack shopping list application with Next.js frontend and GraphQL backend",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w shopping-list-client\" \"npm run dev -w shopping-list-server\"",
+    "dev:client": "npm run dev -w shopping-list-client",
+    "dev:server": "npm run dev -w shopping-list-server", 
+    "build": "npm run build -w shopping-list-client && npm run build -w shopping-list-server",
+    "build:client": "npm run build -w shopping-list-client",
+    "build:server": "npm run build -w shopping-list-server",
+    "lint": "npm run lint -w shopping-list-client && npm run lint -w shopping-list-server",
+    "lint:fix": "npm run lint:fix -w shopping-list-client && npm run lint:fix -w shopping-list-server",
+    "format": "npm run format -w shopping-list-client && npm run format -w shopping-list-server",
+    "clean": "rimraf apps/*/node_modules apps/*/.next apps/*/dist && rimraf node_modules",
+    "postinstall": "npm run postinstall -w shopping-list-server --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "rimraf": "^5.0.5"
+  },
+  "keywords": [
+    "monorepo",
+    "shopping-list",
+    "nextjs",
+    "graphql",
+    "react",
+    "prisma",
+    "apollo"
+  ],
+  "author": "kenmckaba",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kenmckaba/shopping-list-monorepo.git"
+  }
+}

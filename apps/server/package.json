@@ -1,0 +1,49 @@
+{
+	"name": "shopping-list-server",
+	"version": "1.0.0",
+	"description": "GraphQL API server for shopping list application",
+	"main": "index.js",
+	"scripts": {
+		"start": "node dist/server.js",
+		"dev": "npx tsx watch server.ts",
+		"build": "tsc",
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"lint": "biome lint .",
+		"lint:fix": "biome check --write .",
+		"format": "biome format . --write",
+		"check": "biome check ."
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"type": "module",
+	"prisma": {
+		"seed": "npx tsx prisma/seed.ts"
+	},
+	"dependencies": {
+		"@apollo/server": "^4.11.2",
+		"@graphql-tools/schema": "^10.0.31",
+		"@libsql/client": "^0.17.0",
+		"@prisma/adapter-libsql": "^7.5.0",
+		"@prisma/adapter-pg": "^7.5.0",
+		"@prisma/client": "^7.5.0",
+		"cors": "^2.8.6",
+		"dotenv": "^17.3.1",
+		"express": "^5.2.1",
+		"graphql": "^16.9.0",
+		"graphql-subscriptions": "^3.0.0",
+		"graphql-ws": "^6.0.7",
+		"pg": "^8.20.0",
+		"prisma": "^7.5.0",
+		"ws": "^8.19.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.4.4",
+		"@types/cors": "^2.8.19",
+		"@types/express": "^5.0.6",
+		"@types/node": "^20.19.37",
+		"@types/ws": "^8.18.1",
+		"tsx": "^4.0.0",
+		"typescript": "^5.0.0"
+	}
+}
