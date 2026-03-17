@@ -4996,6 +4996,7 @@ __metadata:
     express: "npm:^4.19.2"
     graphql: "npm:^16.9.0"
     graphql-subscriptions: "npm:^3.0.0"
+    graphql-tag: "npm:^2.12.6"
     graphql-ws: "npm:^5.16.0"
     pg: "npm:^8.20.0"
     prisma: "npm:^7.5.0"

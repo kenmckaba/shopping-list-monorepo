@@ -32,6 +32,7 @@
 		"express": "^4.19.2",
 		"graphql": "^16.9.0",
 		"graphql-subscriptions": "^3.0.0",
+		"graphql-tag": "^2.12.6",
 		"graphql-ws": "^5.16.0",
 		"pg": "^8.20.0",
 		"prisma": "^7.5.0",

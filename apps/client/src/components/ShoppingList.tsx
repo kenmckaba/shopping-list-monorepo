@@ -56,7 +56,7 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
     onData: () => onItemsUpdate?.(),
   })
 
-  const handleAddItem = async (e: React.FormEvent) => {
+  const handleAddItem = async (e: { preventDefault: () => void }) => {
     e.preventDefault()
     if (!newItemName.trim()) return
 

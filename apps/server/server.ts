@@ -9,6 +9,7 @@ import { PrismaLibSql } from "@prisma/adapter-libsql";
 import { PrismaClient } from "@prisma/client";
 import cors from "cors";
 import express from "express";
+import { gql } from "graphql-tag";
 import { useServer } from "graphql-ws/lib/use/ws";
 import { WebSocketServer } from "ws";
 import "dotenv/config";
@@ -97,7 +98,7 @@ const createAsyncIterator = (eventName: string) => {
 	};
 };
 
-const typeDefs = `
+const typeDefs = gql`
     type Query {
       getUsers: [User]
       getUserById(id: ID!): User
@@ -111,7 +112,7 @@ const typeDefs = `
       updateUser(id: ID!, name: String, email: String): User
       deleteUser(id: ID!): Boolean
 
-      createList(title: String!, description: String, isPublic: Boolean): ShoppingList
+      createList(title: String!, description: String, isPublic: Boolean, ownerId: ID!): ShoppingList
       updateList(id: ID!, title: String, description: String, isPublic: Boolean): ShoppingList
       deleteList(id: ID!): Boolean
       shareList(listId: ID!, userId: ID!, permission: String!): Boolean

@@ -28,8 +28,8 @@ export const DELETE_USER = gql`
 `
 
 export const CREATE_LIST = gql`
-  mutation CreateList($title: String!, $description: String, $isPublic: Boolean) {
-    createList(title: $title, description: $description, isPublic: $isPublic) {
+  mutation CreateList($title: String!, $description: String, $isPublic: Boolean, $ownerId: ID!) {
+    createList(title: $title, description: $description, isPublic: $isPublic, ownerId: $ownerId) {
       id
       title
       description
