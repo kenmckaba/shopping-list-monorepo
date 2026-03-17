@@ -9,7 +9,7 @@ import { PrismaLibSql } from "@prisma/adapter-libsql";
 import { PrismaClient } from "@prisma/client";
 import cors from "cors";
 import express from "express";
-import { useServer } from "graphql-ws/use/ws";
+import { useServer } from "graphql-ws/lib/use/ws";
 import { WebSocketServer } from "ws";
 import "dotenv/config";
 
@@ -69,9 +69,9 @@ const createAsyncIterator = (eventName: string) => {
 
 			const listener = (data: unknown) => {
 				if (listening) {
-					listeners.forEach((resolve) => {
+					for (const resolve of listeners) {
 						resolve({ value: data });
-					});
+					}
 					listeners.length = 0;
 				}
 			};
@@ -575,8 +575,8 @@ app.use(
 	expressMiddleware(server) as unknown as express.RequestHandler,
 );
 
-const PORT = process.env.PORT ? parseInt(process.env.PORT) : 4000;
-const HOST = process.env.HOST || '0.0.0.0';
+const PORT = process.env.PORT ? Number.parseInt(process.env.PORT) : 4000;
+const HOST = process.env.HOST || "0.0.0.0";
 
 // Now that our HTTP server is fully set up, we can listen to it
 httpServer.listen(PORT, HOST, () => {
@@ -584,11 +584,13 @@ httpServer.listen(PORT, HOST, () => {
 	console.log(`Subscriptions ready at ws://${HOST}:${PORT}/graphql`);
 
 	// For development, show the local network access URLs
-	if (HOST === '0.0.0.0') {
-		console.log(`\nServer can be accessed from other devices at:`);
+	if (HOST === "0.0.0.0") {
+		console.log("\nServer can be accessed from other devices at:");
 		console.log(`- Local: http://localhost:${PORT}/graphql`);
 		console.log(`- Network: http://[YOUR_IP_ADDRESS]:${PORT}/graphql`);
-		console.log(`\nTo find your IP address, run: ipconfig (Windows) or ifconfig (Mac/Linux)`);
+		console.log(
+			"\nTo find your IP address, run: ipconfig (Windows) or ifconfig (Mac/Linux)",
+		);
 	}
 });
 

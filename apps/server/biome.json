@@ -6,7 +6,8 @@
 		"useIgnoreFile": true
 	},
 	"files": {
-		"includes": ["**", "!!**/dist"]
+		"include": ["**"],
+		"ignore": ["**/dist/**", "**/node_modules/**"]
 	},
 	"formatter": {
 		"enabled": true,
@@ -23,12 +24,7 @@
 			"quoteStyle": "double"
 		}
 	},
-	"assist": {
-		"enabled": true,
-		"actions": {
-			"source": {
-				"organizeImports": "on"
-			}
-		}
+	"assists": {
+		"enabled": true
 	}
 }

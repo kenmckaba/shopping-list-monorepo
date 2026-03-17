@@ -3,7 +3,7 @@ node_modules/
 */node_modules/
 apps/*/node_modules/
 
-# Build outputs  
+# Build outputs
 .next/
 dist/
 build/

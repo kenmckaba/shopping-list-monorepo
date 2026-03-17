@@ -222,8 +222,8 @@ async function main() {
 	console.log(`- ${3} users`);
 	console.log(`- ${createdItems.length + 2} items`);
 	console.log(`- ${3} shopping lists`);
-	console.log(`- Multiple list items`);
-	console.log(`- 1 shared list relationship`);
+	console.log("- Multiple list items");
+	console.log("- 1 shared list relationship");
 }
 
 main()

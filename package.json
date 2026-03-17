@@ -7,17 +7,16 @@
     "apps/*"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev -w shopping-list-client\" \"npm run dev -w shopping-list-server\"",
-    "dev:client": "npm run dev -w shopping-list-client",
-    "dev:server": "npm run dev -w shopping-list-server", 
-    "build": "npm run build -w shopping-list-client && npm run build -w shopping-list-server",
-    "build:client": "npm run build -w shopping-list-client",
-    "build:server": "npm run build -w shopping-list-server",
-    "lint": "npm run lint -w shopping-list-client && npm run lint -w shopping-list-server",
-    "lint:fix": "npm run lint:fix -w shopping-list-client && npm run lint:fix -w shopping-list-server",
-    "format": "npm run format -w shopping-list-client && npm run format -w shopping-list-server",
-    "clean": "rimraf apps/*/node_modules apps/*/.next apps/*/dist && rimraf node_modules",
-    "postinstall": "npm run postinstall -w shopping-list-server --if-present"
+    "dev": "concurrently \"yarn workspace shopping-list-client run dev\" \"yarn workspace shopping-list-server run dev\"",
+    "dev:client": "yarn workspace shopping-list-client run dev",
+    "dev:server": "yarn workspace shopping-list-server run dev",
+    "build": "yarn workspace shopping-list-client run build && yarn workspace shopping-list-server run build",
+    "build:client": "yarn workspace shopping-list-client run build",
+    "build:server": "yarn workspace shopping-list-server run build",
+    "lint": "yarn workspace shopping-list-client run lint && yarn workspace shopping-list-server run lint",
+    "lint:fix": "yarn workspace shopping-list-client run lint:fix && yarn workspace shopping-list-server run lint:fix",
+    "format": "yarn workspace shopping-list-client run format && yarn workspace shopping-list-server run format",
+    "clean": "rimraf apps/*/node_modules apps/*/.next apps/*/dist && rimraf node_modules"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",

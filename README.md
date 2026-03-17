@@ -67,14 +67,14 @@ npm run dev:server  # Backend only (port 4000)
 
 ### Individual Apps
 - `npm run dev:client` - Start frontend only
-- `npm run dev:server` - Start backend only  
+- `npm run dev:server` - Start backend only
 - `npm run build:client` - Build frontend
 - `npm run build:server` - Build backend
 
 ## 🌐 Network Access
 
 The application is configured for network access:
-- Frontend: `http://YOUR_IP:3000` (accessible from phones/tablets) 
+- Frontend: `http://YOUR_IP:3000` (accessible from phones/tablets)
 - Backend: `http://YOUR_IP:4000/graphql`
 
 ## 🗄️ Database
