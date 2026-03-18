@@ -31,16 +31,16 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
     onCompleted: () => {
       setNewItemName('')
       setNewItemQuantity(1)
-      onItemsUpdate?.()
+      // Removed onItemsUpdate call - subscriptions will handle the update
     },
   })
 
   const [updateListItem] = useMutation(UPDATE_LIST_ITEM, {
-    onCompleted: () => onItemsUpdate?.(),
+    // Removed onCompleted callback - subscriptions will handle the update
   })
 
   const [removeItemFromList] = useMutation(REMOVE_ITEM_FROM_LIST, {
-    onCompleted: () => onItemsUpdate?.(),
+    // Removed onCompleted callback - subscriptions will handle the update
   })
 
   // Subscribe to real-time updates
@@ -122,6 +122,8 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
             <input
               type="text"
               id="itemName"
+              name="itemName"
+              autoComplete="off"
               value={newItemName}
               onChange={e => setNewItemName(e.target.value)}
               placeholder="Item name"
@@ -136,6 +138,8 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
             <input
               type="number"
               id="itemQuantity"
+              name="itemQuantity"
+              autoComplete="off"
               value={newItemQuantity}
               onChange={e => setNewItemQuantity(Number(e.target.value))}
               min="1"

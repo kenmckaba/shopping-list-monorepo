@@ -1,0 +1,129 @@
+'use client'
+
+import { GET_USER_BY_EMAIL } from '@/lib/graphql/queries'
+import { useLazyQuery } from '@apollo/client'
+import type React from 'react'
+import { createContext, useCallback, useContext, useEffect, useState } from 'react'
+
+interface User {
+  id: string
+  name: string
+  email: string
+  lastOpenedListId?: string
+  createdAt: string
+}
+
+interface AuthContextType {
+  user: User | null
+  isLoading: boolean
+  login: (email: string) => Promise<boolean>
+  logout: () => void
+  updateLastOpenedList: (listId: string) => void
+  getLastOpenedListId: () => string | null
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+export function useAuth() {
+  const context = useContext(AuthContext)
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider')
+  }
+  return context
+}
+
+interface AuthProviderProps {
+  children: React.ReactNode
+}
+
+export function AuthProvider({ children }: AuthProviderProps) {
+  const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  const [getUserByEmail] = useLazyQuery(GET_USER_BY_EMAIL, {
+    onCompleted: data => {
+      if (data.getUserByEmail) {
+        setUser(data.getUserByEmail)
+        localStorage.setItem('user', JSON.stringify(data.getUserByEmail))
+        localStorage.setItem('userEmail', data.getUserByEmail.email)
+      }
+      setIsLoading(false)
+    },
+    onError: error => {
+      console.error('Error fetching user:', error)
+      setIsLoading(false)
+    },
+  })
+
+  // Check for existing session on mount
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user')
+    const storedEmail = localStorage.getItem('userEmail')
+
+    if (storedUser && storedEmail) {
+      try {
+        const userData = JSON.parse(storedUser)
+        setUser(userData)
+        setIsLoading(false)
+
+        // Don't auto-refetch on mount - only refetch when explicitly logging in
+        // This prevents the infinite loop from getUserByEmail triggering onCompleted
+        // getUserByEmail({ variables: { email: storedEmail } })
+      } catch (error) {
+        console.error('Error parsing stored user data:', error)
+        localStorage.removeItem('user')
+        localStorage.removeItem('userEmail')
+        setIsLoading(false)
+      }
+    } else {
+      setIsLoading(false)
+    }
+  }, []) // Remove function dependencies to prevent infinite loops
+
+  const login = async (email: string): Promise<boolean> => {
+    setIsLoading(true)
+    try {
+      const result = await getUserByEmail({ variables: { email } })
+      return !!result.data?.getUserByEmail
+    } catch (error) {
+      console.error('Login error:', error)
+      setIsLoading(false)
+      return false
+    }
+  }
+
+  const logout = () => {
+    setUser(null)
+    localStorage.removeItem('user')
+    localStorage.removeItem('userEmail')
+    localStorage.removeItem('lastOpenedList')
+  }
+
+  const updateLastOpenedList = useCallback((listId: string) => {
+    setUser(prevUser => {
+      if (prevUser) {
+        const updatedUser = { ...prevUser, lastOpenedListId: listId }
+        localStorage.setItem('user', JSON.stringify(updatedUser))
+        localStorage.setItem('lastOpenedList', listId)
+        return updatedUser
+      }
+      return prevUser
+    })
+  }, []) // No dependencies needed - uses function form of setUser
+
+  const getLastOpenedListId = useCallback((): string | null => {
+    // Prioritize user's stored lastOpenedListId, fall back to localStorage
+    return user?.lastOpenedListId || localStorage.getItem('lastOpenedList')
+  }, [user])
+
+  const value: AuthContextType = {
+    user,
+    isLoading,
+    login,
+    logout,
+    updateLastOpenedList,
+    getLastOpenedListId,
+  }
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+}

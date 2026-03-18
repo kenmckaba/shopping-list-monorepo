@@ -101,3 +101,23 @@ export const REMOVE_ITEM_FROM_LIST = gql`
     removeItemFromList(id: $id)
   }
 `
+
+export const LOGIN_USER = gql`
+  mutation LoginUser($email: String!) {
+    loginUser(email: $email) {
+      id
+      name
+      email
+      createdAt
+    }
+  }
+`
+
+export const UPDATE_LAST_OPENED_LIST = gql`
+  mutation UpdateLastOpenedList($userId: ID!, $listId: ID!) {
+    updateLastOpenedList(userId: $userId, listId: $listId) {
+      id
+      lastOpenedListId
+    }
+  }
+`

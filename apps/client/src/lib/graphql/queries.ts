@@ -111,3 +111,43 @@ export const SEARCH_ITEMS = gql`
     }
   }
 `
+
+export const GET_USER_BY_EMAIL = gql`
+  query GetUserByEmail($email: String!) {
+    getUserByEmail(email: $email) {
+      id
+      name
+      email
+      lastOpenedListId
+      createdAt
+    }
+  }
+`
+
+export const GET_USER_ACCESSIBLE_LISTS = gql`
+  query GetUserAccessibleLists($userId: ID!) {
+    getUserAccessibleLists(userId: $userId) {
+      id
+      title
+      description
+      isPublic
+      createdAt
+      owner {
+        id
+        name
+      }
+      items {
+        id
+        quantity
+        isCompleted
+        notes
+        addedAt
+        item {
+          id
+          name
+          category
+        }
+      }
+    }
+  }
+`

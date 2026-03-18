@@ -102,7 +102,9 @@ const typeDefs = gql`
     type Query {
       getUsers: [User]
       getUserById(id: ID!): User
+      getUserByEmail(email: String!): User
       getUserLists(userId: ID!): [ShoppingList]
+      getUserAccessibleLists(userId: ID!): [ShoppingList]
       getListItems(listId: ID!): [ListItemWithDetails]
       searchItems(query: String!): [Item]
     }
@@ -111,6 +113,8 @@ const typeDefs = gql`
       createUser(name: String!, email: String!): User
       updateUser(id: ID!, name: String, email: String): User
       deleteUser(id: ID!): Boolean
+      loginUser(email: String!): User
+      updateLastOpenedList(userId: ID!, listId: ID!): User
 
       createList(title: String!, description: String, isPublic: Boolean, ownerId: ID!): ShoppingList
       updateList(id: ID!, title: String, description: String, isPublic: Boolean): ShoppingList
@@ -141,6 +145,7 @@ const typeDefs = gql`
       id: ID!
       name: String!
       email: String!
+      lastOpenedListId: String
       ownedLists: [ShoppingList]
       sharedLists: [ListShare]
       createdAt: String
@@ -213,6 +218,22 @@ const resolvers = {
 				},
 			});
 		},
+		getUserByEmail: async (
+			_parent: unknown,
+			args: { email: string },
+		): Promise<User | null> => {
+			return await prisma.user.findUnique({
+				where: { email: args.email },
+				include: {
+					ownedLists: true,
+					sharedLists: {
+						include: {
+							list: true,
+						},
+					},
+				},
+			});
+		},
 		getUserLists: async (_parent: unknown, args: { userId: string }) => {
 			const ownedLists = await prisma.shoppingList.findMany({
 				where: { ownerId: args.userId },
@@ -243,8 +264,63 @@ const resolvers = {
 			});
 
 			return [
-				...ownedLists,
-				...sharedLists.map((share: { list: unknown }) => share.list),
+				...(ownedLists || []),
+				...(sharedLists || []).map((share: { list: unknown }) => share.list),
+			];
+		},
+		getUserAccessibleLists: async (
+			_parent: unknown,
+			args: { userId: string },
+		) => {
+			const ownedLists = await prisma.shoppingList.findMany({
+				where: { ownerId: args.userId },
+				include: {
+					owner: true,
+					items: {
+						include: {
+							item: true,
+						},
+					},
+				},
+			});
+
+			const sharedPublicLists = await prisma.shoppingList.findMany({
+				where: {
+					isPublic: true,
+					NOT: { ownerId: args.userId },
+				},
+				include: {
+					owner: true,
+					items: {
+						include: {
+							item: true,
+						},
+					},
+				},
+			});
+
+			const sharedPrivateLists = await prisma.listShare.findMany({
+				where: { userId: args.userId },
+				include: {
+					list: {
+						include: {
+							owner: true,
+							items: {
+								include: {
+									item: true,
+								},
+							},
+						},
+					},
+				},
+			});
+
+			return [
+				...(ownedLists || []),
+				...(sharedPublicLists || []),
+				...(sharedPrivateLists || []).map(
+					(share: { list: unknown }) => share.list,
+				),
 			];
 		},
 		getListItems: async (_parent: unknown, args: { listId: string }) => {
@@ -339,6 +415,33 @@ const resolvers = {
 					`Failed to delete user: ${error instanceof Error ? error.message : "Unknown error"}`,
 				);
 			}
+		},
+
+		loginUser: async (
+			_parent: unknown,
+			args: { email: string },
+		): Promise<User | null> => {
+			return await prisma.user.findUnique({
+				where: { email: args.email },
+				include: {
+					ownedLists: true,
+					sharedLists: {
+						include: {
+							list: true,
+						},
+					},
+				},
+			});
+		},
+
+		updateLastOpenedList: async (
+			_parent: unknown,
+			args: { userId: string; listId: string },
+		): Promise<User | null> => {
+			return await prisma.user.update({
+				where: { id: args.userId },
+				data: { lastOpenedListId: args.listId },
+			});
 		},
 
 		createList: async (

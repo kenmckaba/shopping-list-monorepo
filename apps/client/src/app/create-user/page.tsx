@@ -70,6 +70,8 @@ export default function CreateUserPage() {
                 <input
                   type="text"
                   id="name"
+                  name="name"
+                  autoComplete="name"
                   value={name}
                   onChange={e => setName(e.target.value)}
                   className="input"
@@ -86,6 +88,8 @@ export default function CreateUserPage() {
                 <input
                   type="email"
                   id="email"
+                  name="email"
+                  autoComplete="username email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   className="input"
