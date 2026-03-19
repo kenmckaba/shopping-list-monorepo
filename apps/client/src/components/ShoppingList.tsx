@@ -1,8 +1,16 @@
 'use client'
 
-import { ADD_ITEM_TO_LIST, REMOVE_ITEM_FROM_LIST, UPDATE_LIST_ITEM } from '@/lib/graphql/mutations'
+import {
+  ADD_ITEM_TO_LIST,
+  REMOVE_ITEM_FROM_LIST,
+  UPDATE_LIST_ITEM,
+} from '@/lib/graphql/mutations'
 import { GET_LIST_ITEMS } from '@/lib/graphql/queries'
-import { ITEM_ADDED_TO_LIST, ITEM_REMOVED, ITEM_UPDATED } from '@/lib/graphql/subscriptions'
+import {
+  ITEM_ADDED_TO_LIST,
+  ITEM_REMOVED,
+  ITEM_UPDATED,
+} from '@/lib/graphql/subscriptions'
 import { useMutation, useSubscription } from '@apollo/client'
 import { useState } from 'react'
 
@@ -24,7 +32,11 @@ interface ShoppingListProps {
   onItemsUpdate?: () => void
 }
 
-export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps) {
+export function ShoppingList({
+  listId,
+  items,
+  onItemsUpdate,
+}: ShoppingListProps) {
   const [newItemName, setNewItemName] = useState('')
   const [newItemQuantity, setNewItemQuantity] = useState(1)
 
@@ -58,7 +70,7 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
             query: GET_LIST_ITEMS,
             variables: { listId },
           },
-          existingData => {
+          (existingData) => {
             if (!existingData?.getListItems) return existingData
 
             // Add the new item to the beginning of the list
@@ -66,7 +78,7 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
               ...existingData,
               getListItems: [newItem, ...existingData.getListItems],
             }
-          }
+          },
         )
       }
     },
@@ -93,16 +105,16 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
             query: GET_LIST_ITEMS,
             variables: { listId },
           },
-          existingData => {
+          (existingData) => {
             if (!existingData?.getListItems) return existingData
 
             return {
               ...existingData,
               getListItems: existingData.getListItems.filter(
-                (item: ListItem) => item.id !== removedItemId
+                (item: ListItem) => item.id !== removedItemId,
               ),
             }
-          }
+          },
         )
       }
     },
@@ -125,7 +137,10 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
     }
   }
 
-  const handleToggleComplete = async (itemId: string, currentStatus: boolean) => {
+  const handleToggleComplete = async (
+    itemId: string,
+    currentStatus: boolean,
+  ) => {
     try {
       await updateListItem({
         variables: {
@@ -164,7 +179,10 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
   return (
     <div className="space-y-4">
       {/* Add Item Form */}
-      <form onSubmit={handleAddItem} className="bg-white p-4 rounded-lg shadow-md">
+      <form
+        onSubmit={handleAddItem}
+        className="bg-white p-4 rounded-lg shadow-md"
+      >
         <h3 className="text-lg font-semibold mb-3">Add New Item</h3>
         <div className="flex gap-2">
           <div className="flex-1">
@@ -177,7 +195,7 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
               name="itemName"
               autoComplete="off"
               value={newItemName}
-              onChange={e => setNewItemName(e.target.value)}
+              onChange={(e) => setNewItemName(e.target.value)}
               placeholder="Item name"
               className="input flex-1"
               required
@@ -196,11 +214,13 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
             No items in this list yet. Add some items to get started!
           </div>
         ) : (
-          items.map(listItem => (
+          items.map((listItem) => (
             <div
               key={listItem.id}
               className={`bg-white p-4 rounded-lg shadow-sm border-l-4 ${
-                listItem.isCompleted ? 'border-green-500 bg-green-50' : 'border-blue-500'
+                listItem.isCompleted
+                  ? 'border-green-500 bg-green-50'
+                  : 'border-blue-500'
               }`}
             >
               <div className="flex items-center justify-between">
@@ -209,14 +229,22 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
                     <input
                       type="checkbox"
                       checked={listItem.isCompleted}
-                      onChange={() => handleToggleComplete(listItem.id, listItem.isCompleted)}
+                      onChange={() =>
+                        handleToggleComplete(listItem.id, listItem.isCompleted)
+                      }
                       className="h-5 w-5 text-primary-600 rounded focus:ring-primary-500 touch-target"
                       aria-label={`Mark ${listItem.item.name} as ${listItem.isCompleted ? 'incomplete' : 'complete'}`}
                     />
-                    <div className={listItem.isCompleted ? 'line-through text-gray-500' : ''}>
+                    <div
+                      className={
+                        listItem.isCompleted ? 'line-through text-gray-500' : ''
+                      }
+                    >
                       <p className="font-medium">{listItem.item.name}</p>
                       {listItem.item.category && (
-                        <p className="text-sm text-gray-500">{listItem.item.category}</p>
+                        <p className="text-sm text-gray-500">
+                          {listItem.item.category}
+                        </p>
                       )}
                     </div>
                   </label>
