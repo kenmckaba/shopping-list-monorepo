@@ -3,7 +3,7 @@
 import { GET_USER_BY_EMAIL } from '@/lib/graphql/queries'
 import { useLazyQuery } from '@apollo/client'
 import type React from 'react'
-import { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 
 interface User {
   id: string
@@ -90,28 +90,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, []) // Remove function dependencies to prevent infinite loops
 
-  const login = async (email: string): Promise<boolean> => {
-    setIsLoading(true)
-    try {
-      const result = await getUserByEmail({ variables: { email } })
-      return !!result.data?.getUserByEmail
-    } catch (error) {
-      console.error('Login error:', error)
-      setIsLoading(false)
-      return false
-    }
-  }
+  const login = useCallback(
+    async (email: string): Promise<boolean> => {
+      setIsLoading(true)
+      try {
+        const result = await getUserByEmail({ variables: { email } })
+        return !!result.data?.getUserByEmail
+      } catch (error) {
+        console.error('Login error:', error)
+        setIsLoading(false)
+        return false
+      }
+    },
+    [getUserByEmail]
+  )
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setUser(null)
     localStorage.removeItem('user')
     localStorage.removeItem('userEmail')
     localStorage.removeItem('lastOpenedList')
-  }
+  }, [])
 
   const updateLastOpenedList = useCallback((listId: string) => {
     setUser(prevUser => {
-      if (prevUser) {
+      if (prevUser && prevUser.lastOpenedListId !== listId) {
         const updatedUser = { ...prevUser, lastOpenedListId: listId }
         localStorage.setItem('user', JSON.stringify(updatedUser))
         localStorage.setItem('lastOpenedList', listId)
@@ -124,16 +127,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const getLastOpenedListId = useCallback((): string | null => {
     // Prioritize user's stored lastOpenedListId, fall back to localStorage
     return user?.lastOpenedListId || localStorage.getItem('lastOpenedList')
-  }, [user])
+  }, [user?.lastOpenedListId]) // Remove user dependency - function already accesses current user value
 
-  const value: AuthContextType = {
-    user,
-    isLoading,
-    login,
-    logout,
-    updateLastOpenedList,
-    getLastOpenedListId,
-  }
+  const value: AuthContextType = useMemo(
+    () => ({
+      user,
+      isLoading,
+      login,
+      logout,
+      updateLastOpenedList,
+      getLastOpenedListId,
+    }),
+    [user, isLoading, login, logout, updateLastOpenedList, getLastOpenedListId]
+  )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
