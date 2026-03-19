@@ -70,10 +70,18 @@ export const ADD_ITEM_TO_LIST = gql`
         id
         name
         category
+        createdBy {
+          id
+          name
+        }
       }
       list {
         id
         title
+        owner {
+          id
+          name
+        }
       }
     }
   }
@@ -91,6 +99,10 @@ export const UPDATE_LIST_ITEM = gql`
         id
         name
         category
+        createdBy {
+          id
+          name
+        }
       }
     }
   }

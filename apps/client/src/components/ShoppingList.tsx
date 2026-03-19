@@ -183,23 +183,6 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
               required
             />
           </div>
-          <div className="w-20">
-            <label htmlFor="itemQuantity" className="sr-only">
-              Quantity
-            </label>
-            <input
-              type="number"
-              id="itemQuantity"
-              name="itemQuantity"
-              autoComplete="off"
-              value={newItemQuantity}
-              onChange={e => setNewItemQuantity(Number(e.target.value))}
-              min="1"
-              className="input w-full"
-              title="Quantity"
-              placeholder="1"
-            />
-          </div>
           <button type="submit" className="btn btn-primary">
             Add
           </button>
@@ -238,34 +221,12 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
                     </div>
                   </label>
                 </div>
-
                 <div className="flex items-center space-x-2">
                   <button
                     type="button"
-                    onClick={() => handleUpdateQuantity(listItem.id, listItem.quantity - 1)}
-                    className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center touch-target"
-                    disabled={listItem.quantity <= 1}
-                    aria-label={`Decrease quantity of ${listItem.item.name}`}
-                    title={`Decrease quantity of ${listItem.item.name}`}
-                  >
-                    -
-                  </button>
-                  <span className="text-lg font-semibold w-8 text-center">{listItem.quantity}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleUpdateQuantity(listItem.id, listItem.quantity + 1)}
-                    className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center touch-target"
-                    aria-label={`Increase quantity of ${listItem.item.name}`}
-                    title={`Increase quantity of ${listItem.item.name}`}
-                  >
-                    +
-                  </button>
-                  <button
-                    type="button"
                     onClick={() => handleRemoveItem(listItem.id)}
-                    className="ml-2 w-8 h-8 rounded-full bg-red-100 hover:bg-red-200 text-red-600 flex items-center justify-center touch-target"
+                    className="w-8 h-8 rounded-lg border border-red-300 bg-red-50 flex items-center justify-center text-red-600 hover:bg-red-100 touch-target"
                     aria-label={`Remove ${listItem.item.name} from list`}
-                    title={`Remove ${listItem.item.name} from list`}
                   >
                     ×
                   </button>
