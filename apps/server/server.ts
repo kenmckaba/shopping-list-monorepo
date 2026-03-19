@@ -362,6 +362,22 @@ const resolvers = {
 			args: CreateUserArgs,
 		): Promise<User> => {
 			const { name, email } = args;
+
+			// Check if user already exists
+			const existingUser = await prisma.user.findUnique({
+				where: { email },
+			});
+
+			if (existingUser) {
+				console.log(
+					`User with email "${email}" already exists, returning existing user:`,
+					existingUser,
+				);
+				// Instead of throwing an error, return the existing user (automatic login)
+				// This provides a better user experience - if they forgot they had an account, we just log them in
+				return existingUser;
+			}
+
 			const newUser = await prisma.user.create({
 				data: {
 					name,
@@ -679,7 +695,7 @@ app.use(
 	expressMiddleware(server) as unknown as express.RequestHandler,
 );
 
-const PORT = process.env.PORT ? Number.parseInt(process.env.PORT) : 4000;
+const PORT = process.env.PORT ? Number.parseInt(process.env.PORT, 10) : 4000;
 const HOST = process.env.HOST || "0.0.0.0";
 
 // Now that our HTTP server is fully set up, we can listen to it

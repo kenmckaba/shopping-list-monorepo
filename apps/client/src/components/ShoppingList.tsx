@@ -1,6 +1,7 @@
 'use client'
 
 import { ADD_ITEM_TO_LIST, REMOVE_ITEM_FROM_LIST, UPDATE_LIST_ITEM } from '@/lib/graphql/mutations'
+import { GET_LIST_ITEMS } from '@/lib/graphql/queries'
 import { ITEM_ADDED_TO_LIST, ITEM_REMOVED, ITEM_UPDATED } from '@/lib/graphql/subscriptions'
 import { useMutation, useSubscription } from '@apollo/client'
 import { useState } from 'react'
@@ -43,17 +44,68 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
     // Removed onCompleted callback - subscriptions will handle the update
   })
 
-  // Subscribe to real-time updates
+  // Subscribe to real-time updates - don't trigger refetch as subscriptions automatically update cache
   useSubscription(ITEM_ADDED_TO_LIST, {
-    onData: () => onItemsUpdate?.(),
+    onData: ({ data, client }) => {
+      // Manually update cache to add the new item
+      if (data.data?.itemAddedToList) {
+        const newItem = data.data.itemAddedToList
+        console.log('Item added:', newItem)
+
+        // Update the GET_LIST_ITEMS query cache
+        client.cache.updateQuery(
+          {
+            query: GET_LIST_ITEMS,
+            variables: { listId },
+          },
+          existingData => {
+            if (!existingData?.getListItems) return existingData
+
+            // Add the new item to the beginning of the list
+            return {
+              ...existingData,
+              getListItems: [newItem, ...existingData.getListItems],
+            }
+          }
+        )
+      }
+    },
   })
 
   useSubscription(ITEM_UPDATED, {
-    onData: () => onItemsUpdate?.(),
+    onData: ({ data }) => {
+      // Subscription data automatically updates Apollo cache
+      // No need to manually refetch
+      console.log('Item updated:', data.data?.itemUpdated)
+    },
   })
 
   useSubscription(ITEM_REMOVED, {
-    onData: () => onItemsUpdate?.(),
+    onData: ({ data, client }) => {
+      // Manually update cache to remove the deleted item
+      if (data.data?.itemRemoved) {
+        const removedItemId = data.data.itemRemoved
+        console.log('Item removed:', removedItemId)
+
+        // Update the GET_LIST_ITEMS query cache
+        client.cache.updateQuery(
+          {
+            query: GET_LIST_ITEMS,
+            variables: { listId },
+          },
+          existingData => {
+            if (!existingData?.getListItems) return existingData
+
+            return {
+              ...existingData,
+              getListItems: existingData.getListItems.filter(
+                (item: ListItem) => item.id !== removedItemId
+              ),
+            }
+          }
+        )
+      }
+    },
   })
 
   const handleAddItem = async (e: { preventDefault: () => void }) => {

@@ -3,9 +3,11 @@
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { useAuth } from '@/contexts/AuthContext'
 import { GET_USER_ACCESSIBLE_LISTS } from '@/lib/graphql/queries'
-import { useQuery } from '@apollo/client'
+import { LIST_ADDED, LIST_DELETED, LIST_UPDATED } from '@/lib/graphql/subscriptions'
+import { useQuery, useSubscription } from '@apollo/client'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 
 interface ShoppingList {
   id: string
@@ -31,7 +33,7 @@ export default function UserListsPage() {
   const params = useParams()
   const router = useRouter()
   const userId = params.id as string
-  const { user, logout } = useAuth()
+  const { user, logout, isLoading: authLoading } = useAuth()
 
   // All hooks must be called before conditional logic
   const { loading, error, data } = useQuery<{
@@ -41,37 +43,101 @@ export default function UserListsPage() {
     skip: !userId, // Skip query if no userId
   })
 
-  // Redirect if not authenticated or trying to access another user's lists
-  if (!user) {
-    router.push('/')
-    return null
-  }
+  // Subscribe to real-time list updates
+  useSubscription(LIST_ADDED, {
+    onData: ({ data, client }) => {
+      // Manually update cache to add the new list
+      if (data.data?.listAdded) {
+        const newList = data.data.listAdded
+        console.log('List added:', newList)
 
-  if (user.id !== userId) {
-    router.push(`/user/${user.id}/lists`)
-    return null
-  }
+        // Update the GET_USER_ACCESSIBLE_LISTS query cache
+        client.cache.updateQuery(
+          {
+            query: GET_USER_ACCESSIBLE_LISTS,
+            variables: { userId },
+          },
+          existingData => {
+            if (!existingData?.getUserAccessibleLists) return existingData
 
-  // Calculate progress percentage and round to nearest predefined value
-  const getProgressValue = (completed: number, total: number): string => {
-    if (total === 0) return '0'
-    const percentage = Math.round((completed / total) * 100)
+            // Add the new list to the beginning of the lists
+            return {
+              ...existingData,
+              getUserAccessibleLists: [newList, ...existingData.getUserAccessibleLists],
+            }
+          }
+        )
+      }
+    },
+  })
 
-    // Round to nearest predefined CSS value
-    if (percentage <= 5) return '0'
-    if (percentage <= 15) return '10'
-    if (percentage <= 22) return '20'
-    if (percentage <= 27) return '25'
-    if (percentage <= 35) return '30'
-    if (percentage <= 45) return '40'
-    if (percentage <= 55) return '50'
-    if (percentage <= 65) return '60'
-    if (percentage <= 72) return '70'
-    if (percentage <= 77) return '75'
-    if (percentage <= 85) return '80'
-    if (percentage <= 95) return '90'
-    return '100'
-  }
+  useSubscription(LIST_UPDATED, {
+    onData: ({ data, client }) => {
+      // Manually update cache to modify the existing list
+      if (data.data?.listUpdated) {
+        const updatedList = data.data.listUpdated
+        console.log('List updated:', updatedList)
+
+        // Update the GET_USER_ACCESSIBLE_LISTS query cache
+        client.cache.updateQuery(
+          {
+            query: GET_USER_ACCESSIBLE_LISTS,
+            variables: { userId },
+          },
+          existingData => {
+            if (!existingData?.getUserAccessibleLists) return existingData
+
+            // Replace the updated list in the lists array
+            return {
+              ...existingData,
+              getUserAccessibleLists: existingData.getUserAccessibleLists.map(
+                (list: ShoppingList) =>
+                  list.id === updatedList.id ? { ...list, ...updatedList } : list
+              ),
+            }
+          }
+        )
+      }
+    },
+  })
+
+  useSubscription(LIST_DELETED, {
+    onData: ({ data, client }) => {
+      // Manually update cache to remove the deleted list
+      if (data.data?.listDeleted) {
+        const deletedListId = data.data.listDeleted
+        console.log('List deleted:', deletedListId)
+
+        // Update the GET_USER_ACCESSIBLE_LISTS query cache
+        client.cache.updateQuery(
+          {
+            query: GET_USER_ACCESSIBLE_LISTS,
+            variables: { userId },
+          },
+          existingData => {
+            if (!existingData?.getUserAccessibleLists) return existingData
+
+            // Remove the deleted list from the lists array
+            return {
+              ...existingData,
+              getUserAccessibleLists: existingData.getUserAccessibleLists.filter(
+                (list: ShoppingList) => list.id !== deletedListId
+              ),
+            }
+          }
+        )
+      }
+    },
+  })
+
+  // Use useEffect for redirects to avoid issues with navigation
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/')
+    } else if (user && user.id !== userId) {
+      router.push(`/user/${user.id}/lists`)
+    }
+  }, [user, userId, router, authLoading])
 
   if (loading)
     return (
@@ -102,7 +168,7 @@ export default function UserListsPage() {
           <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">My Shopping Lists</h1>
-              <p className="text-gray-600 mt-1">Welcome back, {user.name}!</p>
+              <p className="text-gray-600 mt-1">Welcome back, {user?.name || 'User'}!</p>
             </div>
             <button type="submit" onClick={logout} className="btn btn-secondary">
               Sign Out
@@ -156,23 +222,6 @@ export default function UserListsPage() {
                           </div>
                         </div>
                       </div>
-
-                      {totalItems > 0 && (
-                        <div className="mb-4">
-                          <div className="flex justify-between text-sm text-gray-600 mb-1">
-                            <span>Progress</span>
-                            <span>
-                              {completedItems}/{totalItems} completed
-                            </span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div
-                              className="bg-primary-600 h-2 rounded-full progress-bar"
-                              data-progress={getProgressValue(completedItems, totalItems)}
-                            />
-                          </div>
-                        </div>
-                      )}
 
                       <div className="flex justify-end">
                         <Link href={`/list/${list.id}`} className="btn btn-primary">

@@ -40,20 +40,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  const [getUserByEmail] = useLazyQuery(GET_USER_BY_EMAIL, {
-    onCompleted: data => {
-      if (data.getUserByEmail) {
-        setUser(data.getUserByEmail)
-        localStorage.setItem('user', JSON.stringify(data.getUserByEmail))
-        localStorage.setItem('userEmail', data.getUserByEmail.email)
-      }
-      setIsLoading(false)
-    },
-    onError: error => {
+  const [getUserByEmail, { data, loading, error }] = useLazyQuery(GET_USER_BY_EMAIL)
+
+  // Handle query results with useEffect instead of onCompleted
+  useEffect(() => {
+    if (data?.getUserByEmail) {
+      setUser(data.getUserByEmail)
+      localStorage.setItem('user', JSON.stringify(data.getUserByEmail))
+      localStorage.setItem('userEmail', data.getUserByEmail.email)
+    }
+  }, [data])
+
+  // Handle query errors with useEffect instead of onError
+  useEffect(() => {
+    if (error) {
       console.error('Error fetching user:', error)
+    }
+  }, [error])
+
+  // Update loading state based on query loading state
+  useEffect(() => {
+    if (!loading) {
       setIsLoading(false)
-    },
-  })
+    }
+  }, [loading])
 
   // Check for existing session on mount
   useEffect(() => {

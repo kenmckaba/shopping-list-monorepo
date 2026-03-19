@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
@@ -10,8 +10,6 @@ export const metadata: Metadata = {
   title: 'Shopping List App',
   description: 'A PWA for managing shopping lists',
   manifest: '/manifest.json',
-  themeColor: '#3b82f6',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
   icons: {
     icon: '/favicon.ico',
     apple: '/icons/icon-192x192.png',
@@ -21,6 +19,13 @@ export const metadata: Metadata = {
     statusBarStyle: 'default',
     title: 'Shopping List',
   },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: '#3b82f6',
 }
 
 export default function RootLayout({
