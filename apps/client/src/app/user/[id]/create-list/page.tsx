@@ -23,7 +23,9 @@ export default function CreateListPage() {
 
   // All hooks must be called before any conditional logic
   const [createList] = useMutation(CREATE_LIST, {
-    refetchQueries: [{ query: GET_USER_ACCESSIBLE_LISTS, variables: { userId } }],
+    refetchQueries: [
+      { query: GET_USER_ACCESSIBLE_LISTS, variables: { userId } },
+    ],
     onCompleted: data => {
       router.push(`/list/${data.createList.id}`)
     },
@@ -68,7 +70,9 @@ export default function CreateListPage() {
         <div className="max-w-md mx-auto">
           <div className="bg-white rounded-lg shadow-md p-8">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-900">Create Shopping List</h1>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Create Shopping List
+              </h1>
               <p className="mt-2 text-gray-600">
                 Create a new shopping list to organize your items
               </p>
@@ -76,7 +80,10 @@ export default function CreateListPage() {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="title"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   List Title *
                 </label>
                 <input
@@ -127,7 +134,10 @@ export default function CreateListPage() {
                     />
                   </div>
                   <div className="ml-3 text-sm">
-                    <label htmlFor="isPublic" className="font-medium text-gray-700">
+                    <label
+                      htmlFor="isPublic"
+                      className="font-medium text-gray-700"
+                    >
                       Make this list public
                     </label>
                     <p className="text-gray-500">
@@ -162,11 +172,17 @@ export default function CreateListPage() {
             </form>
 
             <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <h3 className="text-sm font-medium text-blue-900 mb-2">What happens next?</h3>
+              <h3 className="text-sm font-medium text-blue-900 mb-2">
+                What happens next?
+              </h3>
               <ul className="text-sm text-blue-700 space-y-1">
                 <li>• Your list will be created instantly</li>
-                <li>• You'll be taken to your new list to start adding items</li>
-                <li>• You can share it with others for collaborative shopping</li>
+                <li>
+                  • You'll be taken to your new list to start adding items
+                </li>
+                <li>
+                  • You can share it with others for collaborative shopping
+                </li>
                 <li>• Track your progress as you complete items</li>
               </ul>
             </div>

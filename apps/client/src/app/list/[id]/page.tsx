@@ -78,7 +78,8 @@ export default function ListPage() {
 
   const listItems = data?.getListItems || []
   const listInfo = listData?.getShoppingListById
-  const listTitle = listInfo?.title || listItems[0]?.list.title || 'Shopping List'
+  const listTitle =
+    listInfo?.title || listItems[0]?.list.title || 'Shopping List'
   const listOwner = listInfo?.owner || listItems[0]?.list.owner
   const totalItems = listItems.length
   const completedItems = listItems.filter(item => item.isCompleted).length
@@ -139,15 +140,23 @@ export default function ListPage() {
             )}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">{listTitle}</h1>
-                {listOwner && <p className="text-gray-600">Created by {listOwner.name}</p>}
+                <h1 className="text-3xl font-bold text-gray-900">
+                  {listTitle}
+                </h1>
+                {listOwner && (
+                  <p className="text-gray-600">Created by {listOwner.name}</p>
+                )}
               </div>
             </div>
           </div>
 
           {/* Shopping List Component */}
           <div className="max-w-2xl mx-auto">
-            <ShoppingList listId={listId} items={listItems} onItemsUpdate={handleItemsUpdate} />
+            <ShoppingList
+              listId={listId}
+              items={listItems}
+              onItemsUpdate={handleItemsUpdate}
+            />
           </div>
         </div>
       </div>

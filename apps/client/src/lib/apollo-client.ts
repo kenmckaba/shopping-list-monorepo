@@ -1,4 +1,9 @@
-import { ApolloClient, InMemoryCache, createHttpLink, split } from '@apollo/client'
+import {
+  ApolloClient,
+  InMemoryCache,
+  createHttpLink,
+  split,
+} from '@apollo/client'
 import { loadDevMessages, loadErrorMessages } from '@apollo/client/dev'
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions'
 import { getMainDefinition } from '@apollo/client/utilities'
@@ -11,14 +16,16 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 const httpLink = createHttpLink({
-  uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://192.168.5.106:4000/graphql',
+  uri:
+    process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://192.168.5.106:4000/graphql',
 })
 
 const wsLink =
   typeof window !== 'undefined'
     ? new GraphQLWsLink(
         createClient({
-          url: process.env.NEXT_PUBLIC_WS_URL || 'ws://192.168.5.106:4000/graphql',
+          url:
+            process.env.NEXT_PUBLIC_WS_URL || 'ws://192.168.5.106:4000/graphql',
         })
       )
     : null
@@ -27,7 +34,10 @@ const wsLink =
 const splitLink = split(
   ({ query }) => {
     const definition = getMainDefinition(query)
-    return definition.kind === 'OperationDefinition' && definition.operation === 'subscription'
+    return (
+      definition.kind === 'OperationDefinition' &&
+      definition.operation === 'subscription'
+    )
   },
   wsLink || httpLink, // Fallback to HTTP link if WebSocket not available (SSR)
   httpLink

@@ -3,7 +3,11 @@
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { useAuth } from '@/contexts/AuthContext'
 import { GET_USER_ACCESSIBLE_LISTS } from '@/lib/graphql/queries'
-import { LIST_ADDED, LIST_DELETED, LIST_UPDATED } from '@/lib/graphql/subscriptions'
+import {
+  LIST_ADDED,
+  LIST_DELETED,
+  LIST_UPDATED,
+} from '@/lib/graphql/subscriptions'
 import { useQuery, useSubscription } from '@apollo/client'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
@@ -63,7 +67,10 @@ export default function UserListsPage() {
             // Add the new list to the beginning of the lists
             return {
               ...existingData,
-              getUserAccessibleLists: [newList, ...existingData.getUserAccessibleLists],
+              getUserAccessibleLists: [
+                newList,
+                ...existingData.getUserAccessibleLists,
+              ],
             }
           }
         )
@@ -92,7 +99,9 @@ export default function UserListsPage() {
               ...existingData,
               getUserAccessibleLists: existingData.getUserAccessibleLists.map(
                 (list: ShoppingList) =>
-                  list.id === updatedList.id ? { ...list, ...updatedList } : list
+                  list.id === updatedList.id
+                    ? { ...list, ...updatedList }
+                    : list
               ),
             }
           }
@@ -120,9 +129,10 @@ export default function UserListsPage() {
             // Remove the deleted list from the lists array
             return {
               ...existingData,
-              getUserAccessibleLists: existingData.getUserAccessibleLists.filter(
-                (list: ShoppingList) => list.id !== deletedListId
-              ),
+              getUserAccessibleLists:
+                existingData.getUserAccessibleLists.filter(
+                  (list: ShoppingList) => list.id !== deletedListId
+                ),
             }
           }
         )
@@ -167,10 +177,18 @@ export default function UserListsPage() {
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">My Shopping Lists</h1>
-              <p className="text-gray-600 mt-1">Welcome back, {user?.name || 'User'}!</p>
+              <h1 className="text-3xl font-bold text-gray-900">
+                My Shopping Lists
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Welcome back, {user?.name || 'User'}!
+              </p>
             </div>
-            <button type="submit" onClick={logout} className="btn btn-secondary">
+            <button
+              type="submit"
+              onClick={logout}
+              className="btn btn-secondary"
+            >
               Sign Out
             </button>
           </div>
@@ -178,25 +196,35 @@ export default function UserListsPage() {
           <div className="max-w-2xl mx-auto">
             {lists.length === 0 ? (
               <div className="bg-white rounded-lg shadow-md p-8 text-center">
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">No Lists Yet</h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                  No Lists Yet
+                </h2>
                 <p className="text-gray-600 mb-4">
                   Create your first shopping list to get started!
                 </p>
-                <Link href={`/user/${userId}/create-list`} className="btn btn-primary">
+                <Link
+                  href={`/user/${userId}/create-list`}
+                  className="btn btn-primary"
+                >
                   Create New List
                 </Link>
               </div>
             ) : (
               <div className="space-y-4">
                 <div className="flex justify-end mb-4">
-                  <Link href={`/user/${userId}/create-list`} className="btn btn-primary">
+                  <Link
+                    href={`/user/${userId}/create-list`}
+                    className="btn btn-primary"
+                  >
                     Create New List
                   </Link>
                 </div>
 
                 {lists.map(list => {
                   const totalItems = list.items.length
-                  const completedItems = list.items.filter(item => item.isCompleted).length
+                  const completedItems = list.items.filter(
+                    item => item.isCompleted
+                  ).length
 
                   return (
                     <div
@@ -205,16 +233,26 @@ export default function UserListsPage() {
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
-                          <h3 className="text-xl font-semibold text-gray-900 mb-1">{list.title}</h3>
+                          <h3 className="text-xl font-semibold text-gray-900 mb-1">
+                            {list.title}
+                          </h3>
                           {list.description && (
-                            <p className="text-gray-600 text-sm mb-2">{list.description}</p>
+                            <p className="text-gray-600 text-sm mb-2">
+                              {list.description}
+                            </p>
                           )}
                           <div className="flex items-center space-x-4 text-sm text-gray-500">
                             <span>
                               {totalItems} item{totalItems !== 1 ? 's' : ''}
                             </span>
                             <span>•</span>
-                            <span className={list.isPublic ? 'text-blue-600' : 'text-gray-500'}>
+                            <span
+                              className={
+                                list.isPublic
+                                  ? 'text-blue-600'
+                                  : 'text-gray-500'
+                              }
+                            >
                               {list.isPublic ? 'Public' : 'Private'}
                             </span>
                             <span>•</span>
@@ -224,7 +262,10 @@ export default function UserListsPage() {
                       </div>
 
                       <div className="flex justify-end">
-                        <Link href={`/list/${list.id}`} className="btn btn-primary">
+                        <Link
+                          href={`/list/${list.id}`}
+                          className="btn btn-primary"
+                        >
                           View List
                         </Link>
                       </div>

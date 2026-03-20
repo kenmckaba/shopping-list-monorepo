@@ -1,8 +1,16 @@
 'use client'
 
-import { ADD_ITEM_TO_LIST, REMOVE_ITEM_FROM_LIST, UPDATE_LIST_ITEM } from '@/lib/graphql/mutations'
+import {
+  ADD_ITEM_TO_LIST,
+  REMOVE_ITEM_FROM_LIST,
+  UPDATE_LIST_ITEM,
+} from '@/lib/graphql/mutations'
 import { GET_LIST_ITEMS } from '@/lib/graphql/queries'
-import { ITEM_ADDED_TO_LIST, ITEM_REMOVED, ITEM_UPDATED } from '@/lib/graphql/subscriptions'
+import {
+  ITEM_ADDED_TO_LIST,
+  ITEM_REMOVED,
+  ITEM_UPDATED,
+} from '@/lib/graphql/subscriptions'
 import { useApolloClient, useMutation, useSubscription } from '@apollo/client'
 import { useState } from 'react'
 
@@ -26,7 +34,11 @@ interface ShoppingListProps {
   onItemsUpdate?: () => void
 }
 
-export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps) {
+export function ShoppingList({
+  listId,
+  items,
+  onItemsUpdate,
+}: ShoppingListProps) {
   const [newItemName, setNewItemName] = useState('')
   const [newItemQuantity, setNewItemQuantity] = useState(1)
   const [error, setError] = useState<string | null>(null)
@@ -189,7 +201,10 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
     }
   }
 
-  const handleToggleComplete = async (itemId: string, currentStatus: boolean) => {
+  const handleToggleComplete = async (
+    itemId: string,
+    currentStatus: boolean
+  ) => {
     try {
       await updateListItem({
         variables: {
@@ -228,7 +243,10 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
   return (
     <div className="space-y-4">
       {/* Add Item Form */}
-      <form onSubmit={handleAddItem} className="bg-white p-4 rounded-lg shadow-md">
+      <form
+        onSubmit={handleAddItem}
+        className="bg-white p-4 rounded-lg shadow-md"
+      >
         <h3 className="text-lg font-semibold mb-3">Add New Item</h3>
 
         {/* Error Message */}
@@ -259,7 +277,11 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
               disabled={isSubmitting}
             />
           </div>
-          <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={isSubmitting}
+          >
             {isSubmitting ? 'Adding...' : 'Add'}
           </button>
         </div>
@@ -291,15 +313,22 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
                               name="itemCompleted"
                               checked={listItem.isCompleted}
                               onChange={() =>
-                                handleToggleComplete(listItem.id, listItem.isCompleted)
+                                handleToggleComplete(
+                                  listItem.id,
+                                  listItem.isCompleted
+                                )
                               }
                               className="h-5 w-5 text-primary-600 rounded focus:ring-primary-500 touch-target"
                               aria-label={`Mark ${listItem.item.name} as ${listItem.isCompleted ? 'incomplete' : 'complete'}`}
                             />
                             <div>
-                              <p className="font-medium">{listItem.item.name}</p>
+                              <p className="font-medium">
+                                {listItem.item.name}
+                              </p>
                               {listItem.item.category && (
-                                <p className="text-sm text-gray-500">{listItem.item.category}</p>
+                                <p className="text-sm text-gray-500">
+                                  {listItem.item.category}
+                                </p>
                               )}
                             </div>
                           </label>
@@ -327,8 +356,12 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
                 .filter(item => item.isCompleted)
                 .sort((a, b) => {
                   // Sort by updatedAt (most recent first), fallback to addedAt if updatedAt is missing
-                  const dateA = new Date(a.updatedAt || a.addedAt || '').getTime()
-                  const dateB = new Date(b.updatedAt || b.addedAt || '').getTime()
+                  const dateA = new Date(
+                    a.updatedAt || a.addedAt || ''
+                  ).getTime()
+                  const dateB = new Date(
+                    b.updatedAt || b.addedAt || ''
+                  ).getTime()
                   return dateB - dateA
                 })
               return completedItems.length > 0 ? (
@@ -349,15 +382,22 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
                               name="itemCompleted"
                               checked={listItem.isCompleted}
                               onChange={() =>
-                                handleToggleComplete(listItem.id, listItem.isCompleted)
+                                handleToggleComplete(
+                                  listItem.id,
+                                  listItem.isCompleted
+                                )
                               }
                               className="h-5 w-5 text-primary-600 rounded focus:ring-primary-500 touch-target"
                               aria-label={`Mark ${listItem.item.name} as ${listItem.isCompleted ? 'incomplete' : 'complete'}`}
                             />
                             <div className="line-through text-gray-500">
-                              <p className="font-medium">{listItem.item.name}</p>
+                              <p className="font-medium">
+                                {listItem.item.name}
+                              </p>
                               {listItem.item.category && (
-                                <p className="text-sm text-gray-500">{listItem.item.category}</p>
+                                <p className="text-sm text-gray-500">
+                                  {listItem.item.category}
+                                </p>
                               )}
                             </div>
                           </label>

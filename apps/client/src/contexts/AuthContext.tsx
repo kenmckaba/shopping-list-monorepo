@@ -3,7 +3,14 @@
 import { GET_USER_BY_EMAIL } from '@/lib/graphql/queries'
 import { useLazyQuery } from '@apollo/client'
 import type React from 'react'
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 
 interface User {
   id: string
@@ -40,7 +47,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  const [getUserByEmail, { data, loading, error }] = useLazyQuery(GET_USER_BY_EMAIL)
+  const [getUserByEmail, { data, loading, error }] =
+    useLazyQuery(GET_USER_BY_EMAIL)
 
   // Handle query results with useEffect instead of onCompleted
   useEffect(() => {

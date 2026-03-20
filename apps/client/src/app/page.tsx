@@ -35,7 +35,9 @@ export default function Home() {
     try {
       const success = await login(email.trim())
       if (!success) {
-        setError('User not found. Please check your email or create an account.')
+        setError(
+          'User not found. Please check your email or create an account.'
+        )
       }
       // If successful, the useEffect above will handle the redirect
     } catch (err) {
@@ -62,14 +64,21 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="max-w-md w-full space-y-8 p-8">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Shopping List App</h1>
-          <p className="text-xl text-gray-600 mb-8">Sign in to manage your shopping lists</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            Shopping List App
+          </h1>
+          <p className="text-xl text-gray-600 mb-8">
+            Sign in to manage your shopping lists
+          </p>
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-8">
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Email Address
               </label>
               <input

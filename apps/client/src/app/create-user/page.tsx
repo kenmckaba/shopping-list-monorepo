@@ -52,10 +52,15 @@ export default function CreateUserPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-md mx-auto">
           <div className="mb-8">
-            <Link href="/" className="text-primary-600 hover:underline mb-2 inline-block">
+            <Link
+              href="/"
+              className="text-primary-600 hover:underline mb-2 inline-block"
+            >
               ← Back to Home
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900">Create New User</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Create New User
+            </h1>
             <p className="text-gray-600 mt-2">
               Create an account to start managing your shopping lists
             </p>
@@ -64,7 +69,10 @@ export default function CreateUserPage() {
           <div className="bg-white rounded-lg shadow-md p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Full Name
                 </label>
                 <input
@@ -82,7 +90,10 @@ export default function CreateUserPage() {
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Email Address
                 </label>
                 <input
@@ -116,7 +127,9 @@ export default function CreateUserPage() {
             </form>
 
             <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <h3 className="text-sm font-medium text-blue-900 mb-2">What happens next?</h3>
+              <h3 className="text-sm font-medium text-blue-900 mb-2">
+                What happens next?
+              </h3>
               <ul className="text-sm text-blue-700 space-y-1">
                 <li>• Your account will be created instantly</li>
                 <li>• You'll be taken to your personal dashboard</li>
