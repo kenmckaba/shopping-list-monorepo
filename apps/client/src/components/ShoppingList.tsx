@@ -29,13 +29,27 @@ interface ShoppingListProps {
 export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps) {
   const [newItemName, setNewItemName] = useState('')
   const [newItemQuantity, setNewItemQuantity] = useState(1)
+  const [error, setError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const client = useApolloClient()
 
   const [addItemToList] = useMutation(ADD_ITEM_TO_LIST, {
     onCompleted: () => {
       setNewItemName('')
       setNewItemQuantity(1)
+      setError(null)
+      setIsSubmitting(false)
       // Removed onItemsUpdate call - subscriptions will handle the update
+    },
+    onError: (error) => {
+      setIsSubmitting(false)
+      // Check if it's a duplicate item error
+      if (error.message?.includes('Unique constraint failed') || 
+          error.message?.includes('already exists')) {
+        setError(`"${newItemName}" is already in this list`)
+      } else {
+        setError('Failed to add item. Please try again.')
+      }
     },
   })
 
@@ -146,6 +160,19 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
     e.preventDefault()
     if (!newItemName.trim()) return
 
+    // Check if item already exists in the list (client-side check for better UX)
+    const existingItem = items.find(
+      (item) => item.item.name.toLowerCase() === newItemName.trim().toLowerCase()
+    )
+    
+    if (existingItem) {
+      setError(`"${newItemName.trim()}" is already in this list`)
+      return
+    }
+
+    setError(null)
+    setIsSubmitting(true)
+
     try {
       await addItemToList({
         variables: {
@@ -156,6 +183,7 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
       })
     } catch (error) {
       console.error('Error adding item:', error)
+      // Error is handled in the mutation's onError callback
     }
   }
 
@@ -200,6 +228,14 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
       {/* Add Item Form */}
       <form onSubmit={handleAddItem} className="bg-white p-4 rounded-lg shadow-md">
         <h3 className="text-lg font-semibold mb-3">Add New Item</h3>
+        
+        {/* Error Message */}
+        {error && (
+          <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-red-700 text-sm">{error}</p>
+          </div>
+        )}
+        
         <div className="flex gap-2">
           <div className="flex-1">
             <label htmlFor="itemName" className="sr-only">
@@ -211,14 +247,22 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
               name="itemName"
               autoComplete="off"
               value={newItemName}
-              onChange={e => setNewItemName(e.target.value)}
+              onChange={e => {
+                setNewItemName(e.target.value)
+                if (error) setError(null) // Clear error when user starts typing
+              }}
               placeholder="Item name"
-              className="input flex-1"
+              className={`input flex-1 ${error ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
               required
+              disabled={isSubmitting}
             />
           </div>
-          <button type="submit" className="btn btn-primary">
-            Add
+          <button 
+            type="submit" 
+            className="btn btn-primary"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Adding...' : 'Add'}
           </button>
         </div>
       </form>
