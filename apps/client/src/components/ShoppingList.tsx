@@ -372,7 +372,7 @@ export function ShoppingList({
                   {completedItems.map(listItem => (
                     <div
                       key={listItem.id}
-                      className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500 bg-green-50"
+                      className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3 flex-1">
