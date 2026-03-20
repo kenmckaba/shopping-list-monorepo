@@ -106,6 +106,14 @@ export const UPDATE_LIST_ITEM = gql`
           name
         }
       }
+      list {
+        id
+        title
+        owner {
+          id
+          name
+        }
+      }
     }
   }
 `
