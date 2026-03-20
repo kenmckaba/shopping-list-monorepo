@@ -3,7 +3,7 @@
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { ShoppingList } from '@/components/ShoppingList'
 import { useAuth } from '@/contexts/AuthContext'
-import { GET_LIST_ITEMS } from '@/lib/graphql/queries'
+import { GET_LIST_BY_ID, GET_LIST_ITEMS } from '@/lib/graphql/queries'
 import { useQuery } from '@apollo/client'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
@@ -50,6 +50,25 @@ export default function ListPage() {
     // pollInterval: 5000, // Poll every 5 seconds for updates
   })
 
+  // Separate query for list details
+  const { data: listData } = useQuery<{
+    getShoppingListById: {
+      id: string
+      title: string
+      description?: string
+      isPublic: boolean
+      createdAt: string
+      updatedAt: string
+      owner: {
+        id: string
+        name: string
+      }
+    }
+  }>(GET_LIST_BY_ID, {
+    variables: { id: listId },
+    skip: !listId,
+  })
+
   // Update the last opened list when this page loads
   useEffect(() => {
     if (user && listId) {
@@ -58,8 +77,9 @@ export default function ListPage() {
   }, [user, listId, updateLastOpenedList])
 
   const listItems = data?.getListItems || []
-  const listTitle = listItems[0]?.list.title || 'Shopping List'
-  const listOwner = listItems[0]?.list.owner
+  const listInfo = listData?.getShoppingListById
+  const listTitle = listInfo?.title || listItems[0]?.list.title || 'Shopping List'
+  const listOwner = listInfo?.owner || listItems[0]?.list.owner
   const totalItems = listItems.length
   const completedItems = listItems.filter(item => item.isCompleted).length
 

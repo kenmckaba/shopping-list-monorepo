@@ -68,6 +68,23 @@ export const GET_USER_LISTS = gql`
   }
 `
 
+export const GET_LIST_BY_ID = gql`
+  query GetShoppingListById($id: ID!) {
+    getShoppingListById(id: $id) {
+      id
+      title
+      description
+      isPublic
+      createdAt
+      updatedAt
+      owner {
+        id
+        name
+      }
+    }
+  }
+`
+
 export const GET_LIST_ITEMS = gql`
   query GetListItems($listId: ID!) {
     getListItems(listId: $listId) {

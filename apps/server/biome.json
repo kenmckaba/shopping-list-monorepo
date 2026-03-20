@@ -17,8 +17,14 @@
   },
   "javascript": {
     "formatter": {
-      "quoteStyle": "double",
-      "arrowParentheses": "asNeeded"
+      "quoteStyle": "single",
+      "quoteProperties": "asNeeded",
+      "trailingCommas": "es5",
+      "semicolons": "asNeeded",
+      "arrowParentheses": "asNeeded",
+      "bracketSpacing": true,
+      "bracketSameLine": false,
+      "attributePosition": "auto"
     }
   }
 }
