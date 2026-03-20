@@ -41,11 +41,13 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
       setIsSubmitting(false)
       // Removed onItemsUpdate call - subscriptions will handle the update
     },
-    onError: (error) => {
+    onError: error => {
       setIsSubmitting(false)
       // Check if it's a duplicate item error
-      if (error.message?.includes('Unique constraint failed') || 
-          error.message?.includes('already exists')) {
+      if (
+        error.message?.includes('Unique constraint failed') ||
+        error.message?.includes('already exists')
+      ) {
         setError(`"${newItemName}" is already in this list`)
       } else {
         setError('Failed to add item. Please try again.')
@@ -162,9 +164,9 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
 
     // Check if item already exists in the list (client-side check for better UX)
     const existingItem = items.find(
-      (item) => item.item.name.toLowerCase() === newItemName.trim().toLowerCase()
+      item => item.item.name.toLowerCase() === newItemName.trim().toLowerCase()
     )
-    
+
     if (existingItem) {
       setError(`"${newItemName.trim()}" is already in this list`)
       return
@@ -228,14 +230,14 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
       {/* Add Item Form */}
       <form onSubmit={handleAddItem} className="bg-white p-4 rounded-lg shadow-md">
         <h3 className="text-lg font-semibold mb-3">Add New Item</h3>
-        
+
         {/* Error Message */}
         {error && (
           <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-md">
             <p className="text-red-700 text-sm">{error}</p>
           </div>
         )}
-        
+
         <div className="flex gap-2">
           <div className="flex-1">
             <label htmlFor="itemName" className="sr-only">
@@ -257,11 +259,7 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
               disabled={isSubmitting}
             />
           </div>
-          <button 
-            type="submit" 
-            className="btn btn-primary"
-            disabled={isSubmitting}
-          >
+          <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
             {isSubmitting ? 'Adding...' : 'Add'}
           </button>
         </div>

@@ -81,7 +81,7 @@ const createAsyncIterator = (eventName: string) => {
 
       return {
         next: () =>
-          new Promise((resolve) => {
+          new Promise(resolve => {
             if (listening) {
               listeners.push(resolve);
             } else {

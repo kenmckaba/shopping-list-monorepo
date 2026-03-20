@@ -63,7 +63,7 @@ async function main() {
   ];
 
   const createdItems = await Promise.all(
-    commonItems.map((item) => prisma.item.create({ data: item })),
+    commonItems.map(item => prisma.item.create({ data: item })),
   );
 
   console.log(`Created ${createdItems.length} common items`);
@@ -227,7 +227,7 @@ async function main() {
 }
 
 main()
-  .catch((e) => {
+  .catch(e => {
     console.error(e);
     process.exit(1);
   })
