@@ -762,7 +762,17 @@ await server.start()
 // and our expressMiddleware function
 app.use(
   '/graphql',
-  cors<cors.CorsRequest>(),
+  cors<cors.CorsRequest>({
+    origin: true, // Allow all origins in development
+    credentials: true, // Allow credentials
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Apollo-Require-Preflight',
+    ],
+    exposedHeaders: ['Content-Length', 'ETag'],
+  }),
   express.json(),
   expressMiddleware(server) as unknown as express.RequestHandler
 )

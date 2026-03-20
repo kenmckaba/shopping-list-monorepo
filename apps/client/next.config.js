@@ -9,6 +9,8 @@ const nextConfig = {
     NEXT_PUBLIC_WS_URL:
       process.env.NEXT_PUBLIC_WS_URL || 'ws://192.168.5.106:4000/graphql',
   },
+  // Allow cross-origin requests from external devices for development
+  allowedDevOrigins: ['192.168.5.106'],
   turbopack: {
     root: process.cwd()?.includes('apps')
       ? path.resolve(process.cwd(), '../../')

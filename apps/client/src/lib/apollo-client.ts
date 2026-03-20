@@ -18,6 +18,20 @@ if (process.env.NODE_ENV === 'development') {
 const httpLink = createHttpLink({
   uri:
     process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://192.168.5.106:4000/graphql',
+  // Add timeout and better error handling for mobile network connectivity
+  fetchOptions: {
+    timeout: 10000, // 10 second timeout
+  },
+  fetch: (uri, options) => {
+    // Add a timeout wrapper for better mobile network handling
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000)
+
+    return fetch(uri, {
+      ...options,
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeoutId))
+  },
 })
 
 const wsLink =
@@ -26,6 +40,21 @@ const wsLink =
         createClient({
           url:
             process.env.NEXT_PUBLIC_WS_URL || 'ws://192.168.5.106:4000/graphql',
+          connectionParams: {
+            // Add connection timeout
+          },
+          retryAttempts: 3,
+          shouldRetry: () => true,
+          connectionAckWaitTimeout: 5000, // 5 second timeout for connection ack
+          // Add error handling for WebSocket connections
+          on: {
+            error: error => {
+              console.warn('WebSocket connection error:', error)
+            },
+            closed: () => {
+              console.warn('WebSocket connection closed')
+            },
+          },
         })
       )
     : null
@@ -69,8 +98,14 @@ export const apolloClient = new ApolloClient({
   defaultOptions: {
     watchQuery: {
       errorPolicy: 'ignore',
+      fetchPolicy: 'cache-and-network', // Better for mobile connectivity
+      notifyOnNetworkStatusChange: true,
     },
     query: {
+      errorPolicy: 'all',
+      fetchPolicy: 'cache-first', // Use cache when network is slow
+    },
+    mutate: {
       errorPolicy: 'all',
     },
   },

@@ -96,16 +96,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } else {
       setIsLoading(false)
     }
+
+    // Add a safety timeout to prevent infinite loading
+    const loadingTimeout = setTimeout(() => {
+      console.warn('Auth loading timeout - forcing loading to false')
+      setIsLoading(false)
+    }, 10000) // 10 second timeout
+
+    return () => clearTimeout(loadingTimeout)
   }, []) // Remove function dependencies to prevent infinite loops
 
   const login = useCallback(
     async (email: string): Promise<boolean> => {
       setIsLoading(true)
+
+      // Add a timeout promise to prevent hanging connections
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Network timeout')), 15000)
+      )
+
       try {
-        const result = await getUserByEmail({ variables: { email } })
-        return !!result.data?.getUserByEmail
+        const queryPromise = getUserByEmail({ variables: { email } })
+        const result = await Promise.race([queryPromise, timeoutPromise])
+        return !!(result as { data?: { getUserByEmail?: User } })?.data
+          ?.getUserByEmail
       } catch (error) {
         console.error('Login error:', error)
+        if (error instanceof Error && error.message === 'Network timeout') {
+          console.warn('Login request timed out - check network connection')
+        }
         setIsLoading(false)
         return false
       }
