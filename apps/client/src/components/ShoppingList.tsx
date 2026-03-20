@@ -3,7 +3,7 @@
 import { ADD_ITEM_TO_LIST, REMOVE_ITEM_FROM_LIST, UPDATE_LIST_ITEM } from '@/lib/graphql/mutations'
 import { GET_LIST_ITEMS } from '@/lib/graphql/queries'
 import { ITEM_ADDED_TO_LIST, ITEM_REMOVED, ITEM_UPDATED } from '@/lib/graphql/subscriptions'
-import { useMutation, useSubscription } from '@apollo/client'
+import { useApolloClient, useMutation, useSubscription } from '@apollo/client'
 import { useState } from 'react'
 
 interface ListItem {
@@ -29,6 +29,7 @@ interface ShoppingListProps {
 export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps) {
   const [newItemName, setNewItemName] = useState('')
   const [newItemQuantity, setNewItemQuantity] = useState(1)
+  const client = useApolloClient()
 
   const [addItemToList] = useMutation(ADD_ITEM_TO_LIST, {
     onCompleted: () => {
@@ -39,7 +40,32 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
   })
 
   const [updateListItem] = useMutation(UPDATE_LIST_ITEM, {
-    // Removed onCompleted callback - subscriptions will handle the update
+    onCompleted: data => {
+      // When an item is updated, manually reorder the cache to put it at the top of its section
+      const updatedItem = data.updateListItem
+
+      // Update the cache directly
+      client.cache.updateQuery(
+        {
+          query: GET_LIST_ITEMS,
+          variables: { listId },
+        },
+        existingData => {
+          if (!existingData?.getListItems) return existingData
+
+          // Remove the updated item from its current position
+          const otherItems = existingData.getListItems.filter(
+            (item: ListItem) => item.id !== updatedItem.id
+          )
+
+          // Add the updated item to the beginning of the list (it will be filtered/sorted in render)
+          return {
+            ...existingData,
+            getListItems: [updatedItem, ...otherItems],
+          }
+        }
+      )
+    },
   })
 
   const [removeItemFromList] = useMutation(REMOVE_ITEM_FROM_LIST, {
@@ -76,9 +102,15 @@ export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps
 
   useSubscription(ITEM_UPDATED, {
     onData: ({ data }) => {
-      // Subscription data automatically updates Apollo cache
-      // No need to manually refetch
-      console.log('Item updated:', data.data?.itemUpdated)
+      // Just log for debugging - mutation onCompleted handles cache updates
+      if (data.data?.itemUpdated) {
+        console.log(
+          'Item updated:',
+          data.data.itemUpdated.item.name,
+          'isCompleted:',
+          data.data.itemUpdated.isCompleted
+        )
+      }
     },
   })
 

@@ -101,12 +101,21 @@ export const ITEM_UPDATED = gql`
       quantity
       isCompleted
       notes
+      addedAt
       updatedAt
       item {
         id
         name
         category
         createdBy {
+          id
+          name
+        }
+      }
+      list {
+        id
+        title
+        owner {
           id
           name
         }
