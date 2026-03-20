@@ -76,6 +76,7 @@ export const GET_LIST_ITEMS = gql`
       isCompleted
       notes
       addedAt
+      updatedAt
       item {
         id
         name

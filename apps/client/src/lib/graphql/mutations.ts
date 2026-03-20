@@ -66,6 +66,7 @@ export const ADD_ITEM_TO_LIST = gql`
       isCompleted
       notes
       addedAt
+      updatedAt
       item {
         id
         name
@@ -95,6 +96,7 @@ export const UPDATE_LIST_ITEM = gql`
       isCompleted
       notes
       addedAt
+      updatedAt
       item {
         id
         name

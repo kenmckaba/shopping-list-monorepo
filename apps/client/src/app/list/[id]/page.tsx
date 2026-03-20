@@ -15,6 +15,7 @@ interface ListItem {
   isCompleted: boolean
   notes?: string
   addedAt: string
+  updatedAt?: string
   item: {
     id: string
     name: string

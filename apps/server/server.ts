@@ -176,6 +176,7 @@ const typeDefs = gql`
       isCompleted: Boolean!
       notes: String
       addedAt: String
+      updatedAt: String
     }
 
     type ListItemWithDetails {
@@ -184,6 +185,7 @@ const typeDefs = gql`
       isCompleted: Boolean!
       notes: String
       addedAt: String
+      updatedAt: String
       item: Item!
       list: ShoppingList!
     }
@@ -464,12 +466,21 @@ const resolvers = {
       _parent: unknown,
       args: CreateListArgs & { ownerId: string },
     ) => {
+      // Verify the user exists before creating the list
+      const userExists = await prisma.user.findUnique({
+        where: { id: args.ownerId },
+      });
+
+      if (!userExists) {
+        throw new Error(`User with ID ${args.ownerId} not found`);
+      }
+
       const newList = await prisma.shoppingList.create({
         data: {
           title: args.title,
           description: args.description || null,
           isPublic: args.isPublic || false,
-          ownerId: args.ownerId, // This should come from auth context
+          ownerId: args.ownerId,
         },
         include: {
           owner: true,
@@ -511,16 +522,39 @@ const resolvers = {
     },
 
     addItemToList: async (_parent: unknown, args: AddItemToListArgs) => {
+      // Verify the list exists
+      const listExists = await prisma.shoppingList.findUnique({
+        where: { id: args.listId },
+      });
+
+      if (!listExists) {
+        throw new Error(`Shopping list with ID ${args.listId} not found`);
+      }
+
       // First, create or find the item
       let item = await prisma.item.findUnique({
         where: { name: args.itemName },
       });
 
       if (!item) {
+        // Ensure system user exists for item creation
+        let systemUser = await prisma.user.findUnique({
+          where: { email: "system@example.com" },
+        });
+
+        if (!systemUser) {
+          systemUser = await prisma.user.create({
+            data: {
+              name: "System",
+              email: "system@example.com",
+            },
+          });
+        }
+
         item = await prisma.item.create({
           data: {
             name: args.itemName,
-            createdById: "system", // For now, using system user
+            createdById: systemUser.id,
           },
         });
       }

@@ -118,6 +118,7 @@ export default function CreateListPage() {
                   <div className="flex items-center h-5">
                     <input
                       id="isPublic"
+                      name="isPublic"
                       type="checkbox"
                       checked={isPublic}
                       onChange={e => setIsPublic(e.target.checked)}

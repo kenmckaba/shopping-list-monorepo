@@ -62,11 +62,12 @@ model Item {
 }
 
 model ListItem {
-  id          String   @id @default(cuid())
-  quantity    Int      @default(1)
-  isCompleted Boolean  @default(false)
+  id          String    @id @default(cuid())
+  quantity    Int       @default(1)
+  isCompleted Boolean   @default(false)
   notes       String?
-  addedAt     DateTime @default(now())
+  addedAt     DateTime  @default(now())
+  updatedAt   DateTime? @updatedAt
 
   // Foreign keys
   listId      String

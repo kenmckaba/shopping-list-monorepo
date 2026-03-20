@@ -72,6 +72,7 @@ export const ITEM_ADDED_TO_LIST = gql`
       isCompleted
       notes
       addedAt
+      updatedAt
       item {
         id
         name
@@ -100,6 +101,7 @@ export const ITEM_UPDATED = gql`
       quantity
       isCompleted
       notes
+      updatedAt
       item {
         id
         name

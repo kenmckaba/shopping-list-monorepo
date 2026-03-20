@@ -1,16 +1,8 @@
 'use client'
 
-import {
-  ADD_ITEM_TO_LIST,
-  REMOVE_ITEM_FROM_LIST,
-  UPDATE_LIST_ITEM,
-} from '@/lib/graphql/mutations'
+import { ADD_ITEM_TO_LIST, REMOVE_ITEM_FROM_LIST, UPDATE_LIST_ITEM } from '@/lib/graphql/mutations'
 import { GET_LIST_ITEMS } from '@/lib/graphql/queries'
-import {
-  ITEM_ADDED_TO_LIST,
-  ITEM_REMOVED,
-  ITEM_UPDATED,
-} from '@/lib/graphql/subscriptions'
+import { ITEM_ADDED_TO_LIST, ITEM_REMOVED, ITEM_UPDATED } from '@/lib/graphql/subscriptions'
 import { useMutation, useSubscription } from '@apollo/client'
 import { useState } from 'react'
 
@@ -19,6 +11,8 @@ interface ListItem {
   quantity: number
   isCompleted: boolean
   notes?: string
+  addedAt: string
+  updatedAt?: string
   item: {
     id: string
     name: string
@@ -32,11 +26,7 @@ interface ShoppingListProps {
   onItemsUpdate?: () => void
 }
 
-export function ShoppingList({
-  listId,
-  items,
-  onItemsUpdate,
-}: ShoppingListProps) {
+export function ShoppingList({ listId, items, onItemsUpdate }: ShoppingListProps) {
   const [newItemName, setNewItemName] = useState('')
   const [newItemQuantity, setNewItemQuantity] = useState(1)
 
@@ -70,7 +60,7 @@ export function ShoppingList({
             query: GET_LIST_ITEMS,
             variables: { listId },
           },
-          (existingData) => {
+          existingData => {
             if (!existingData?.getListItems) return existingData
 
             // Add the new item to the beginning of the list
@@ -78,7 +68,7 @@ export function ShoppingList({
               ...existingData,
               getListItems: [newItem, ...existingData.getListItems],
             }
-          },
+          }
         )
       }
     },
@@ -105,16 +95,16 @@ export function ShoppingList({
             query: GET_LIST_ITEMS,
             variables: { listId },
           },
-          (existingData) => {
+          existingData => {
             if (!existingData?.getListItems) return existingData
 
             return {
               ...existingData,
               getListItems: existingData.getListItems.filter(
-                (item: ListItem) => item.id !== removedItemId,
+                (item: ListItem) => item.id !== removedItemId
               ),
             }
-          },
+          }
         )
       }
     },
@@ -137,10 +127,7 @@ export function ShoppingList({
     }
   }
 
-  const handleToggleComplete = async (
-    itemId: string,
-    currentStatus: boolean,
-  ) => {
+  const handleToggleComplete = async (itemId: string, currentStatus: boolean) => {
     try {
       await updateListItem({
         variables: {
@@ -179,10 +166,7 @@ export function ShoppingList({
   return (
     <div className="space-y-4">
       {/* Add Item Form */}
-      <form
-        onSubmit={handleAddItem}
-        className="bg-white p-4 rounded-lg shadow-md"
-      >
+      <form onSubmit={handleAddItem} className="bg-white p-4 rounded-lg shadow-md">
         <h3 className="text-lg font-semibold mb-3">Add New Item</h3>
         <div className="flex gap-2">
           <div className="flex-1">
@@ -195,7 +179,7 @@ export function ShoppingList({
               name="itemName"
               autoComplete="off"
               value={newItemName}
-              onChange={(e) => setNewItemName(e.target.value)}
+              onChange={e => setNewItemName(e.target.value)}
               placeholder="Item name"
               className="input flex-1"
               required
@@ -208,60 +192,109 @@ export function ShoppingList({
       </form>
 
       {/* Items List */}
-      <div className="space-y-2">
+      <div className="space-y-6">
         {items.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             No items in this list yet. Add some items to get started!
           </div>
         ) : (
-          items.map((listItem) => (
-            <div
-              key={listItem.id}
-              className={`bg-white p-4 rounded-lg shadow-sm border-l-4 ${
-                listItem.isCompleted
-                  ? 'border-green-500 bg-green-50'
-                  : 'border-blue-500'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3 flex-1">
-                  <label className="flex items-center space-x-3">
-                    <input
-                      type="checkbox"
-                      checked={listItem.isCompleted}
-                      onChange={() =>
-                        handleToggleComplete(listItem.id, listItem.isCompleted)
-                      }
-                      className="h-5 w-5 text-primary-600 rounded focus:ring-primary-500 touch-target"
-                      aria-label={`Mark ${listItem.item.name} as ${listItem.isCompleted ? 'incomplete' : 'complete'}`}
-                    />
+          <>
+            {/* Unchecked Items */}
+            {(() => {
+              const uncompletedItems = items.filter(item => !item.isCompleted)
+              return uncompletedItems.length > 0 ? (
+                <div className="space-y-2">
+                  {uncompletedItems.map(listItem => (
                     <div
-                      className={
-                        listItem.isCompleted ? 'line-through text-gray-500' : ''
-                      }
+                      key={listItem.id}
+                      className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500"
                     >
-                      <p className="font-medium">{listItem.item.name}</p>
-                      {listItem.item.category && (
-                        <p className="text-sm text-gray-500">
-                          {listItem.item.category}
-                        </p>
-                      )}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3 flex-1">
+                          <label className="flex items-center space-x-3">
+                            <input
+                              type="checkbox"
+                              name="itemCompleted"
+                              checked={listItem.isCompleted}
+                              onChange={() =>
+                                handleToggleComplete(listItem.id, listItem.isCompleted)
+                              }
+                              className="h-5 w-5 text-primary-600 rounded focus:ring-primary-500 touch-target"
+                              aria-label={`Mark ${listItem.item.name} as ${listItem.isCompleted ? 'incomplete' : 'complete'}`}
+                            />
+                            <div>
+                              <p className="font-medium">{listItem.item.name}</p>
+                              {listItem.item.category && (
+                                <p className="text-sm text-gray-500">{listItem.item.category}</p>
+                              )}
+                            </div>
+                          </label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveItem(listItem.id)}
+                            className="w-8 h-8 rounded-lg border border-red-300 bg-red-50 flex items-center justify-center text-red-600 hover:bg-red-100 touch-target"
+                            aria-label={`Remove ${listItem.item.name} from list`}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  </label>
+                  ))}
                 </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveItem(listItem.id)}
-                    className="w-8 h-8 rounded-lg border border-red-300 bg-red-50 flex items-center justify-center text-red-600 hover:bg-red-100 touch-target"
-                    aria-label={`Remove ${listItem.item.name} from list`}
-                  >
-                    ×
-                  </button>
+              ) : null
+            })()}
+
+            {/* Checked Items */}
+            {(() => {
+              const completedItems = items
+                .filter(item => item.isCompleted)
+                .sort((a, b) => {
+                  // Sort by updatedAt (most recent first), fallback to addedAt if updatedAt is missing
+                  const dateA = new Date(a.updatedAt || a.addedAt || '').getTime()
+                  const dateB = new Date(b.updatedAt || b.addedAt || '').getTime()
+                  return dateB - dateA
+                })
+              return completedItems.length > 0 ? (
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium text-gray-500 border-t pt-4">
+                    Completed Items ({completedItems.length})
+                  </h4>
+                  {completedItems.map(listItem => (
+                    <div
+                      key={listItem.id}
+                      className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500 bg-green-50"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3 flex-1">
+                          <label className="flex items-center space-x-3">
+                            <input
+                              type="checkbox"
+                              name="itemCompleted"
+                              checked={listItem.isCompleted}
+                              onChange={() =>
+                                handleToggleComplete(listItem.id, listItem.isCompleted)
+                              }
+                              className="h-5 w-5 text-primary-600 rounded focus:ring-primary-500 touch-target"
+                              aria-label={`Mark ${listItem.item.name} as ${listItem.isCompleted ? 'incomplete' : 'complete'}`}
+                            />
+                            <div className="line-through text-gray-500">
+                              <p className="font-medium">{listItem.item.name}</p>
+                              {listItem.item.category && (
+                                <p className="text-sm text-gray-500">{listItem.item.category}</p>
+                              )}
+                            </div>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
-            </div>
-          ))
+              ) : null
+            })()}
+          </>
         )}
       </div>
     </div>
