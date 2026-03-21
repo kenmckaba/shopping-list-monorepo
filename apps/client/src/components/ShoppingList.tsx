@@ -247,8 +247,6 @@ export function ShoppingList({
         onSubmit={handleAddItem}
         className="bg-white p-4 rounded-lg shadow-md"
       >
-        <h3 className="text-lg font-semibold mb-3">Add New Item</h3>
-
         {/* Error Message */}
         {error && (
           <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-md">
@@ -258,9 +256,6 @@ export function ShoppingList({
 
         <div className="flex gap-2">
           <div className="flex-1">
-            <label htmlFor="itemName" className="sr-only">
-              Item name
-            </label>
             <input
               type="text"
               id="itemName"
@@ -271,7 +266,7 @@ export function ShoppingList({
                 setNewItemName(e.target.value)
                 if (error) setError(null) // Clear error when user starts typing
               }}
-              placeholder="Item name"
+              placeholder="Add a new item"
               className={`input flex-1 ${error ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
               required
               disabled={isSubmitting}

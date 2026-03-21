@@ -138,8 +138,8 @@ export default function ListPage() {
                 ← Back to Home
               </button>
             )}
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-center">
+              <div className="text-center">
                 <h1 className="text-3xl font-bold text-gray-900">
                   {listTitle}
                 </h1>

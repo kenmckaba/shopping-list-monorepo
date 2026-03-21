@@ -76,6 +76,13 @@ export const apolloClient = new ApolloClient({
   link: splitLink,
   cache: new InMemoryCache({
     typePolicies: {
+      Query: {
+        fields: {
+          getListItems: {
+            merge: false, // Always replace cached data, don't merge
+          },
+        },
+      },
       User: {
         fields: {
           ownedLists: {
