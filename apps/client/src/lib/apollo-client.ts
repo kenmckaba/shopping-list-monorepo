@@ -16,8 +16,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 const httpLink = createHttpLink({
-  uri:
-    process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://192.168.5.106:4000/graphql',
+  uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql',
   // Add timeout and better error handling for mobile network connectivity
   fetchOptions: {
     timeout: 10000, // 10 second timeout
@@ -38,8 +37,7 @@ const wsLink =
   typeof window !== 'undefined'
     ? new GraphQLWsLink(
         createClient({
-          url:
-            process.env.NEXT_PUBLIC_WS_URL || 'ws://192.168.5.106:4000/graphql',
+          url: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:4000/graphql',
           connectionParams: {
             // Add connection timeout
           },

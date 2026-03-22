@@ -760,11 +760,59 @@ await server.start()
 
 // Set up our Express middleware to handle CORS, body parsing,
 // and our expressMiddleware function
+const getAllowedOrigins = () => {
+  // Default development origins
+  const allowedStringOrigins = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+  ]
+
+  // Get origins from environment variable (comma-separated)
+  const envOrigins =
+    process.env.CORS_ORIGINS?.split(',').map(origin => origin.trim()) || []
+
+  // Combine defaults with environment origins
+  const allStringOrigins = [...allowedStringOrigins, ...envOrigins]
+
+  // Development regex patterns
+  const developmentPatterns = [
+    /^http:\/\/192\.168\.[0-9]+\.[0-9]+:3000$/,
+    /^http:\/\/10\.[0-9]+\.[0-9]+\.[0-9]+:3000$/,
+    /^http:\/\/172\.(1[6-9]|2[0-9]|3[0-1])\.[0-9]+\.[0-9]+:3000$/,
+  ]
+
+  // Return a function that checks both string matches and regex matches
+  return (
+    origin: string | undefined,
+    callback: (err: Error | null, allow?: boolean) => void
+  ) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true)
+
+    // Check string origins
+    if (allStringOrigins.includes(origin)) {
+      return callback(null, true)
+    }
+
+    // In development, check regex patterns
+    if (process.env.NODE_ENV === 'development') {
+      for (const pattern of developmentPatterns) {
+        if (pattern.test(origin)) {
+          return callback(null, true)
+        }
+      }
+    }
+
+    // Origin not allowed
+    callback(null, false)
+  }
+}
+
 app.use(
   '/graphql',
   cors<cors.CorsRequest>({
-    origin: true, // Allow all origins in development
-    credentials: true, // Allow credentials
+    origin: getAllowedOrigins(),
+    credentials: true,
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: [
       'Content-Type',
