@@ -298,21 +298,23 @@ export function ShoppingList({
                   {uncompletedItems.map(listItem => (
                     <div
                       key={listItem.id}
-                      className="bg-white p-1 rounded-lg shadow-sm border-l-4 border-blue-500"
+                      className="bg-white p-1 rounded-lg shadow-sm border-l-4 border-blue-500 cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => handleToggleComplete(listItem.id, listItem.isCompleted)}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3 flex-1">
-                          <label className="flex items-center space-x-3">
+                          <label className="flex items-center space-x-3 cursor-pointer">
                             <input
                               type="checkbox"
                               name="itemCompleted"
                               checked={listItem.isCompleted}
-                              onChange={() =>
+                              onChange={(e) => {
+                                e.stopPropagation()
                                 handleToggleComplete(
                                   listItem.id,
                                   listItem.isCompleted
                                 )
-                              }
+                              }}
                               className="h-5 w-5 text-primary-600 rounded focus:ring-primary-500 touch-target"
                               aria-label={`Mark ${listItem.item.name} as ${listItem.isCompleted ? 'incomplete' : 'complete'}`}
                             />
@@ -331,7 +333,10 @@ export function ShoppingList({
                         <div className="flex items-center space-x-2">
                           <button
                             type="button"
-                            onClick={() => handleRemoveItem(listItem.id)}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleRemoveItem(listItem.id)
+                            }}
                             className="w-8 h-8 rounded-lg border border-red-300 bg-red-50 flex items-center justify-center text-red-600 hover:bg-red-100 touch-target"
                             aria-label={`Remove ${listItem.item.name} from list`}
                           >
@@ -367,21 +372,23 @@ export function ShoppingList({
                   {completedItems.map(listItem => (
                     <div
                       key={listItem.id}
-                      className="bg-white p-1 rounded-lg shadow-sm border-l-4 border-green-500"
+                      className="bg-white p-1 rounded-lg shadow-sm border-l-4 border-green-500 cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => handleToggleComplete(listItem.id, listItem.isCompleted)}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3 flex-1">
-                          <label className="flex items-center space-x-3">
+                          <label className="flex items-center space-x-3 cursor-pointer">
                             <input
                               type="checkbox"
                               name="itemCompleted"
                               checked={listItem.isCompleted}
-                              onChange={() =>
+                              onChange={(e) => {
+                                e.stopPropagation()
                                 handleToggleComplete(
                                   listItem.id,
                                   listItem.isCompleted
                                 )
-                              }
+                              }}
                               className="h-5 w-5 text-primary-600 rounded focus:ring-primary-500 touch-target"
                               aria-label={`Mark ${listItem.item.name} as ${listItem.isCompleted ? 'incomplete' : 'complete'}`}
                             />
