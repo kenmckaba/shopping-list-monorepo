@@ -119,42 +119,14 @@ export default function ListPage() {
   }
 
   const isCurrentListInAccessibleLists = userAccessibleLists.some(
-    (list) => list.id === listId,
+    list => list.id === listId
   )
   const allUserLists = isCurrentListInAccessibleLists
     ? userAccessibleLists
     : [...userAccessibleLists, currentListInfo]
 
   const totalItems = listItems.length
-  const completedItems = listItems.filter((item) => item.isCompleted).length
-
-  // Debug logging for user data (moved after allUserLists declaration)
-  useEffect(() => {
-    console.log('=== DEBUG USER ACCESSIBLE LISTS ===')
-    console.log('User ID:', user?.id)
-    console.log('User loading:', userLoading)
-    console.log('User error:', userError)
-    console.log('User data:', userData)
-    console.log('User accessible lists:', userAccessibleLists)
-    console.log('User accessible lists length:', userAccessibleLists.length)
-    console.log('Current list info:', currentListInfo)
-    console.log(
-      'Is current list in accessible lists?',
-      isCurrentListInAccessibleLists,
-    )
-    console.log('Final all user lists:', allUserLists)
-    console.log('Final all user lists length:', allUserLists.length)
-    console.log('====================================')
-  }, [
-    user,
-    userData,
-    userLoading,
-    userError,
-    userAccessibleLists,
-    currentListInfo,
-    isCurrentListInAccessibleLists,
-    allUserLists,
-  ])
+  const completedItems = listItems.filter(item => item.isCompleted).length
 
   // Handle list selection change
   const handleListChange = useCallback(
@@ -163,7 +135,7 @@ export default function ListPage() {
         router.push(`/list/${selectedListId}`)
       }
     },
-    [listId, router],
+    [listId, router]
   )
 
   // Memoize the refetch callback to prevent infinite re-renders
@@ -194,7 +166,7 @@ export default function ListPage() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-2">
           {/* Header */}
           <div className="mb-8">
             {user ? (
@@ -226,13 +198,13 @@ export default function ListPage() {
                 {user ? (
                   <select
                     value={listId}
-                    onChange={(e) => handleListChange(e.target.value)}
+                    onChange={e => handleListChange(e.target.value)}
                     className="text-3xl font-bold text-gray-900 bg-white border-2 border-gray-300 rounded-lg px-4 py-2 cursor-pointer hover:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 min-w-[200px]"
                     aria-label="Select a shopping list"
                   >
                     {allUserLists.length > 0 ? (
                       // Show all accessible lists (owned and shared)
-                      allUserLists.map((list) => (
+                      allUserLists.map(list => (
                         <option key={list.id} value={list.id}>
                           {list.title}
                         </option>

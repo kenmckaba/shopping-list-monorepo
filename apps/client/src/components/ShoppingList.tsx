@@ -296,10 +296,14 @@ export function ShoppingList({
               return uncompletedItems.length > 0 ? (
                 <div className="space-y-2">
                   {uncompletedItems.map(listItem => (
-                    <div
+                    <button
                       key={listItem.id}
-                      className="bg-white p-1 rounded-lg shadow-sm border-l-4 border-blue-500 cursor-pointer hover:bg-gray-50 transition-colors"
-                      onClick={() => handleToggleComplete(listItem.id, listItem.isCompleted)}
+                      type="button"
+                      className="w-full bg-white p-1 rounded-lg shadow-sm border-l-4 border-blue-500 cursor-pointer hover:bg-gray-50 transition-colors text-left"
+                      onClick={() =>
+                        handleToggleComplete(listItem.id, listItem.isCompleted)
+                      }
+                      aria-label={`Toggle completion status for ${listItem.item.name}`}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3 flex-1">
@@ -308,7 +312,7 @@ export function ShoppingList({
                               type="checkbox"
                               name="itemCompleted"
                               checked={listItem.isCompleted}
-                              onChange={(e) => {
+                              onChange={e => {
                                 e.stopPropagation()
                                 handleToggleComplete(
                                   listItem.id,
@@ -333,7 +337,7 @@ export function ShoppingList({
                         <div className="flex items-center space-x-2">
                           <button
                             type="button"
-                            onClick={(e) => {
+                            onClick={e => {
                               e.stopPropagation()
                               handleRemoveItem(listItem.id)
                             }}
@@ -344,7 +348,7 @@ export function ShoppingList({
                           </button>
                         </div>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               ) : null
@@ -366,14 +370,18 @@ export function ShoppingList({
                 })
               return completedItems.length > 0 ? (
                 <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-gray-500 border-t pt-4">
+                  <h4 className="text-sm font-bold text-gray-500 border-t pt-4">
                     Completed Items ({completedItems.length})
                   </h4>
                   {completedItems.map(listItem => (
-                    <div
+                    <button
                       key={listItem.id}
-                      className="bg-white p-1 rounded-lg shadow-sm border-l-4 border-green-500 cursor-pointer hover:bg-gray-50 transition-colors"
-                      onClick={() => handleToggleComplete(listItem.id, listItem.isCompleted)}
+                      type="button"
+                      className="w-full bg-white p-1 rounded-lg shadow-sm border-l-4 border-green-500 cursor-pointer hover:bg-gray-50 transition-colors text-left"
+                      onClick={() =>
+                        handleToggleComplete(listItem.id, listItem.isCompleted)
+                      }
+                      aria-label={`Toggle completion status for ${listItem.item.name}`}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3 flex-1">
@@ -382,7 +390,7 @@ export function ShoppingList({
                               type="checkbox"
                               name="itemCompleted"
                               checked={listItem.isCompleted}
-                              onChange={(e) => {
+                              onChange={e => {
                                 e.stopPropagation()
                                 handleToggleComplete(
                                   listItem.id,
@@ -405,7 +413,7 @@ export function ShoppingList({
                           </label>
                         </div>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               ) : null
