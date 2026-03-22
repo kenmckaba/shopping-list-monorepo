@@ -53,7 +53,7 @@ export function ShoppingList({
       setIsSubmitting(false)
       // Removed onItemsUpdate call - subscriptions will handle the update
     },
-    onError: error => {
+    onError: (error) => {
       setIsSubmitting(false)
       // Check if it's a duplicate item error
       if (
@@ -68,7 +68,7 @@ export function ShoppingList({
   })
 
   const [updateListItem] = useMutation(UPDATE_LIST_ITEM, {
-    onCompleted: data => {
+    onCompleted: (data) => {
       // When an item is updated, manually reorder the cache to put it at the top of its section
       const updatedItem = data.updateListItem
 
@@ -78,12 +78,12 @@ export function ShoppingList({
           query: GET_LIST_ITEMS,
           variables: { listId },
         },
-        existingData => {
+        (existingData) => {
           if (!existingData?.getListItems) return existingData
 
           // Remove the updated item from its current position
           const otherItems = existingData.getListItems.filter(
-            (item: ListItem) => item.id !== updatedItem.id
+            (item: ListItem) => item.id !== updatedItem.id,
           )
 
           // Add the updated item to the beginning of the list (it will be filtered/sorted in render)
@@ -91,7 +91,7 @@ export function ShoppingList({
             ...existingData,
             getListItems: [updatedItem, ...otherItems],
           }
-        }
+        },
       )
     },
   })
@@ -114,7 +114,7 @@ export function ShoppingList({
             query: GET_LIST_ITEMS,
             variables: { listId },
           },
-          existingData => {
+          (existingData) => {
             if (!existingData?.getListItems) return existingData
 
             // Add the new item to the beginning of the list
@@ -122,7 +122,7 @@ export function ShoppingList({
               ...existingData,
               getListItems: [newItem, ...existingData.getListItems],
             }
-          }
+          },
         )
       }
     },
@@ -136,7 +136,7 @@ export function ShoppingList({
           'Item updated:',
           data.data.itemUpdated.item.name,
           'isCompleted:',
-          data.data.itemUpdated.isCompleted
+          data.data.itemUpdated.isCompleted,
         )
       }
     },
@@ -155,16 +155,16 @@ export function ShoppingList({
             query: GET_LIST_ITEMS,
             variables: { listId },
           },
-          existingData => {
+          (existingData) => {
             if (!existingData?.getListItems) return existingData
 
             return {
               ...existingData,
               getListItems: existingData.getListItems.filter(
-                (item: ListItem) => item.id !== removedItemId
+                (item: ListItem) => item.id !== removedItemId,
               ),
             }
-          }
+          },
         )
       }
     },
@@ -176,7 +176,8 @@ export function ShoppingList({
 
     // Check if item already exists in the list (client-side check for better UX)
     const existingItem = items.find(
-      item => item.item.name.toLowerCase() === newItemName.trim().toLowerCase()
+      (item) =>
+        item.item.name.toLowerCase() === newItemName.trim().toLowerCase(),
     )
 
     if (existingItem) {
@@ -203,7 +204,7 @@ export function ShoppingList({
 
   const handleToggleComplete = async (
     itemId: string,
-    currentStatus: boolean
+    currentStatus: boolean,
   ) => {
     try {
       await updateListItem({
@@ -245,7 +246,7 @@ export function ShoppingList({
       {/* Add Item Form */}
       <form
         onSubmit={handleAddItem}
-        className="bg-white p-4 rounded-lg shadow-md"
+        className="bg-white p-1 rounded-lg shadow-md"
       >
         {/* Error Message */}
         {error && (
@@ -262,7 +263,7 @@ export function ShoppingList({
               name="itemName"
               autoComplete="off"
               value={newItemName}
-              onChange={e => {
+              onChange={(e) => {
                 setNewItemName(e.target.value)
                 if (error) setError(null) // Clear error when user starts typing
               }}
@@ -292,10 +293,10 @@ export function ShoppingList({
           <>
             {/* Unchecked Items */}
             {(() => {
-              const uncompletedItems = items.filter(item => !item.isCompleted)
+              const uncompletedItems = items.filter((item) => !item.isCompleted)
               return uncompletedItems.length > 0 ? (
                 <div className="space-y-2">
-                  {uncompletedItems.map(listItem => (
+                  {uncompletedItems.map((listItem) => (
                     <div
                       key={listItem.id}
                       className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500"
@@ -310,7 +311,7 @@ export function ShoppingList({
                               onChange={() =>
                                 handleToggleComplete(
                                   listItem.id,
-                                  listItem.isCompleted
+                                  listItem.isCompleted,
                                 )
                               }
                               className="h-5 w-5 text-primary-600 rounded focus:ring-primary-500 touch-target"
@@ -348,14 +349,14 @@ export function ShoppingList({
             {/* Checked Items */}
             {(() => {
               const completedItems = items
-                .filter(item => item.isCompleted)
+                .filter((item) => item.isCompleted)
                 .sort((a, b) => {
                   // Sort by updatedAt (most recent first), fallback to addedAt if updatedAt is missing
                   const dateA = new Date(
-                    a.updatedAt || a.addedAt || ''
+                    a.updatedAt || a.addedAt || '',
                   ).getTime()
                   const dateB = new Date(
-                    b.updatedAt || b.addedAt || ''
+                    b.updatedAt || b.addedAt || '',
                   ).getTime()
                   return dateB - dateA
                 })
@@ -364,7 +365,7 @@ export function ShoppingList({
                   <h4 className="text-sm font-medium text-gray-500 border-t pt-4">
                     Completed Items ({completedItems.length})
                   </h4>
-                  {completedItems.map(listItem => (
+                  {completedItems.map((listItem) => (
                     <div
                       key={listItem.id}
                       className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500"
@@ -379,7 +380,7 @@ export function ShoppingList({
                               onChange={() =>
                                 handleToggleComplete(
                                   listItem.id,
-                                  listItem.isCompleted
+                                  listItem.isCompleted,
                                 )
                               }
                               className="h-5 w-5 text-primary-600 rounded focus:ring-primary-500 touch-target"
