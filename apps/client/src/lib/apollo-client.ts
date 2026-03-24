@@ -15,8 +15,34 @@ if (process.env.NODE_ENV === 'development') {
   loadErrorMessages()
 }
 
+// Dynamic GraphQL endpoint based on current host
+const getGraphQLUrl = () => {
+  if (typeof window === 'undefined') {
+    // Server-side: use localhost
+    return (
+      process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql'
+    )
+  }
+
+  // Client-side: use current host but port 4000
+  const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:'
+  const host = window.location.hostname
+  return `${protocol}//${host}:4000/graphql`
+}
+
+const getWebSocketUrl = () => {
+  if (typeof window === 'undefined') {
+    return process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:4000/graphql'
+  }
+
+  // Client-side: use current host but port 4000
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  const host = window.location.hostname
+  return `${protocol}//${host}:4000/graphql`
+}
+
 const httpLink = createHttpLink({
-  uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql',
+  uri: getGraphQLUrl(),
   // Add timeout and better error handling for mobile network connectivity
   fetchOptions: {
     timeout: 10000, // 10 second timeout
@@ -37,7 +63,7 @@ const wsLink =
   typeof window !== 'undefined'
     ? new GraphQLWsLink(
         createClient({
-          url: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:4000/graphql',
+          url: getWebSocketUrl(),
           connectionParams: {
             // Add connection timeout
           },

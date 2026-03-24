@@ -222,9 +222,6 @@ export default function UserListsPage() {
 
                 {lists.map(list => {
                   const totalItems = list.items.length
-                  const completedItems = list.items.filter(
-                    item => item.isCompleted
-                  ).length
 
                   return (
                     <div

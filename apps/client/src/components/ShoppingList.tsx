@@ -31,14 +31,9 @@ interface ListItem {
 interface ShoppingListProps {
   listId: string
   items: ListItem[]
-  onItemsUpdate?: () => void
 }
 
-export function ShoppingList({
-  listId,
-  items,
-  onItemsUpdate,
-}: ShoppingListProps) {
+export function ShoppingList({ listId, items }: ShoppingListProps) {
   const [newItemName, setNewItemName] = useState('')
   const [newItemQuantity, setNewItemQuantity] = useState(1)
   const [error, setError] = useState<string | null>(null)
@@ -51,7 +46,6 @@ export function ShoppingList({
       setNewItemQuantity(1)
       setError(null)
       setIsSubmitting(false)
-      // Removed onItemsUpdate call - subscriptions will handle the update
     },
     onError: error => {
       setIsSubmitting(false)
@@ -217,19 +211,6 @@ export function ShoppingList({
     }
   }
 
-  const handleUpdateQuantity = async (itemId: string, quantity: number) => {
-    try {
-      await updateListItem({
-        variables: {
-          id: itemId,
-          quantity: Math.max(1, quantity),
-        },
-      })
-    } catch (error) {
-      console.error('Error updating quantity:', error)
-    }
-  }
-
   const handleRemoveItem = async (itemId: string) => {
     try {
       await removeItemFromList({
@@ -296,14 +277,9 @@ export function ShoppingList({
               return uncompletedItems.length > 0 ? (
                 <div className="space-y-2">
                   {uncompletedItems.map(listItem => (
-                    <button
+                    <div
                       key={listItem.id}
-                      type="button"
-                      className="w-full bg-white p-1 rounded-lg shadow-sm border-l-4 border-blue-500 cursor-pointer hover:bg-gray-50 transition-colors text-left"
-                      onClick={() =>
-                        handleToggleComplete(listItem.id, listItem.isCompleted)
-                      }
-                      aria-label={`Toggle completion status for ${listItem.item.name}`}
+                      className="w-full bg-white p-1 rounded-lg shadow-sm border-l-4 border-blue-500 hover:bg-gray-50 transition-colors"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3 flex-1">
@@ -312,13 +288,12 @@ export function ShoppingList({
                               type="checkbox"
                               name="itemCompleted"
                               checked={listItem.isCompleted}
-                              onChange={e => {
-                                e.stopPropagation()
+                              onChange={() =>
                                 handleToggleComplete(
                                   listItem.id,
                                   listItem.isCompleted
                                 )
-                              }}
+                              }
                               className="h-5 w-5 text-primary-600 rounded focus:ring-primary-500 touch-target"
                               aria-label={`Mark ${listItem.item.name} as ${listItem.isCompleted ? 'incomplete' : 'complete'}`}
                             />
@@ -337,10 +312,7 @@ export function ShoppingList({
                         <div className="flex items-center space-x-2">
                           <button
                             type="button"
-                            onClick={e => {
-                              e.stopPropagation()
-                              handleRemoveItem(listItem.id)
-                            }}
+                            onClick={() => handleRemoveItem(listItem.id)}
                             className="w-8 h-8 rounded-lg border border-red-300 bg-red-50 flex items-center justify-center text-red-600 hover:bg-red-100 touch-target"
                             aria-label={`Remove ${listItem.item.name} from list`}
                           >
@@ -348,7 +320,7 @@ export function ShoppingList({
                           </button>
                         </div>
                       </div>
-                    </button>
+                    </div>
                   ))}
                 </div>
               ) : null
@@ -374,14 +346,9 @@ export function ShoppingList({
                     Completed Items ({completedItems.length})
                   </h4>
                   {completedItems.map(listItem => (
-                    <button
+                    <div
                       key={listItem.id}
-                      type="button"
-                      className="w-full bg-white p-1 rounded-lg shadow-sm border-l-4 border-green-500 cursor-pointer hover:bg-gray-50 transition-colors text-left"
-                      onClick={() =>
-                        handleToggleComplete(listItem.id, listItem.isCompleted)
-                      }
-                      aria-label={`Toggle completion status for ${listItem.item.name}`}
+                      className="w-full bg-white p-1 rounded-lg shadow-sm border-l-4 border-green-500 hover:bg-gray-50 transition-colors"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3 flex-1">
@@ -390,13 +357,12 @@ export function ShoppingList({
                               type="checkbox"
                               name="itemCompleted"
                               checked={listItem.isCompleted}
-                              onChange={e => {
-                                e.stopPropagation()
+                              onChange={() =>
                                 handleToggleComplete(
                                   listItem.id,
                                   listItem.isCompleted
                                 )
-                              }}
+                              }
                               className="h-5 w-5 text-primary-600 rounded focus:ring-primary-500 touch-target"
                               aria-label={`Mark ${listItem.item.name} as ${listItem.isCompleted ? 'incomplete' : 'complete'}`}
                             />
@@ -413,7 +379,7 @@ export function ShoppingList({
                           </label>
                         </div>
                       </div>
-                    </button>
+                    </div>
                   ))}
                 </div>
               ) : null

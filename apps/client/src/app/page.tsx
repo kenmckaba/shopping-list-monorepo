@@ -41,6 +41,7 @@ export default function Home() {
       }
       // If successful, the useEffect above will handle the redirect
     } catch (err) {
+      console.log('Login error:', err)
       setError('An error occurred during login. Please try again.')
     } finally {
       setIsSubmitting(false)

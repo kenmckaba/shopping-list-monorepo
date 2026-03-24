@@ -96,34 +96,36 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } else {
       setIsLoading(false)
     }
-
-    // Add a safety timeout to prevent infinite loading
-    const loadingTimeout = setTimeout(() => {
-      console.warn('Auth loading timeout - forcing loading to false')
-      setIsLoading(false)
-    }, 10000) // 10 second timeout
-
-    return () => clearTimeout(loadingTimeout)
   }, []) // Remove function dependencies to prevent infinite loops
 
   const login = useCallback(
     async (email: string): Promise<boolean> => {
       setIsLoading(true)
 
-      // Add a timeout promise to prevent hanging connections
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Network timeout')), 15000)
-      )
-
       try {
-        const queryPromise = getUserByEmail({ variables: { email } })
-        const result = await Promise.race([queryPromise, timeoutPromise])
-        return !!(result as { data?: { getUserByEmail?: User } })?.data
-          ?.getUserByEmail
+        // Use the query promise directly without Promise.race timeout
+        // to avoid interfering with React 19 Suspense mechanisms
+        const result = await getUserByEmail({ variables: { email } })
+        const userData = result?.data?.getUserByEmail
+        if (userData) {
+          setUser(userData)
+          localStorage.setItem('user', JSON.stringify(userData))
+          localStorage.setItem('userEmail', userData.email)
+          setIsLoading(false)
+          return true
+        }
+        setIsLoading(false)
+        return false
       } catch (error) {
         console.error('Login error:', error)
-        if (error instanceof Error && error.message === 'Network timeout') {
-          console.warn('Login request timed out - check network connection')
+        // Don't catch Suspense exceptions - rethrow them
+        if (
+          error &&
+          typeof error === 'object' &&
+          'name' in error &&
+          error.name === 'Suspense'
+        ) {
+          throw error
         }
         setIsLoading(false)
         return false

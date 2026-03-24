@@ -45,7 +45,7 @@ export default function ListPage() {
   const listId = params.id as string
   const { user, updateLastOpenedList } = useAuth()
 
-  const { loading, error, data, refetch } = useQuery<{
+  const { loading, error, data } = useQuery<{
     getListItems: ListItem[]
   }>(GET_LIST_ITEMS, {
     variables: { listId },
@@ -74,11 +74,7 @@ export default function ListPage() {
   })
 
   // Query for all lists the user has access to (this should include both owned and shared)
-  const {
-    data: userData,
-    loading: userLoading,
-    error: userError,
-  } = useQuery<{
+  const { data: userData } = useQuery<{
     getUserAccessibleLists: {
       id: string
       title: string
@@ -125,9 +121,6 @@ export default function ListPage() {
     ? userAccessibleLists
     : [...userAccessibleLists, currentListInfo]
 
-  const totalItems = listItems.length
-  const completedItems = listItems.filter(item => item.isCompleted).length
-
   // Handle list selection change
   const handleListChange = useCallback(
     (selectedListId: string) => {
@@ -137,11 +130,6 @@ export default function ListPage() {
     },
     [listId, router]
   )
-
-  // Memoize the refetch callback to prevent infinite re-renders
-  const handleItemsUpdate = useCallback(() => {
-    refetch()
-  }, [refetch])
 
   if (loading)
     return (
@@ -199,7 +187,7 @@ export default function ListPage() {
                   <select
                     value={listId}
                     onChange={e => handleListChange(e.target.value)}
-                    className="text-3xl font-bold text-gray-900 bg-white border-2 border-gray-300 rounded-lg px-4 py-2 cursor-pointer hover:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 min-w-[200px]"
+                    className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 bg-white border-2 border-gray-300 rounded-lg px-2 sm:px-4 py-1 sm:py-2 cursor-pointer hover:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl"
                     aria-label="Select a shopping list"
                   >
                     {allUserLists.length > 0 ? (
@@ -225,11 +213,7 @@ export default function ListPage() {
 
           {/* Shopping List Component */}
           <div className="max-w-2xl mx-auto">
-            <ShoppingList
-              listId={listId}
-              items={listItems}
-              onItemsUpdate={handleItemsUpdate}
-            />
+            <ShoppingList listId={listId} items={listItems} />
           </div>
         </div>
       </div>
