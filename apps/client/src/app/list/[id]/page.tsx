@@ -98,28 +98,29 @@ export default function ListPage() {
     }
   }, [user, listId, updateLastOpenedList])
 
-  const listItems = data?.getListItems || []
+  const listItems = data?.getListItems
   const listInfo = listData?.getShoppingListById
-  const listTitle =
-    listInfo?.title || listItems[0]?.list.title || 'Shopping List'
-  const listOwner = listInfo?.owner || listItems[0]?.list.owner
+  const listTitle = listInfo?.title
+  const listOwner = listInfo?.owner
 
   // Get all lists the user has access to (much simpler now!)
-  const userAccessibleLists = userData?.getUserAccessibleLists || []
+  const userAccessibleLists = userData?.getUserAccessibleLists
 
   // Always include current list if it's not already in accessible lists
   const currentListInfo = {
     id: listId,
     title: listTitle,
-    owner: listOwner || { id: '', name: '' },
+    owner: listOwner,
   }
 
-  const isCurrentListInAccessibleLists = userAccessibleLists.some(
+  const isCurrentListInAccessibleLists = userAccessibleLists?.some(
     list => list.id === listId
   )
   const allUserLists = isCurrentListInAccessibleLists
     ? userAccessibleLists
-    : [...userAccessibleLists, currentListInfo]
+    : userAccessibleLists
+      ? [...userAccessibleLists, currentListInfo]
+      : [currentListInfo]
 
   // Handle list selection change
   const handleListChange = useCallback(
@@ -190,17 +191,11 @@ export default function ListPage() {
                     className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 bg-white border-2 border-gray-300 rounded-lg px-2 sm:px-4 py-1 sm:py-2 cursor-pointer hover:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl"
                     aria-label="Select a shopping list"
                   >
-                    {allUserLists.length > 0 ? (
-                      // Show all accessible lists (owned and shared)
-                      allUserLists.map(list => (
-                        <option key={list.id} value={list.id}>
-                          {list.title}
-                        </option>
-                      ))
-                    ) : (
-                      // Fallback: show current list only if we have no lists from query
-                      <option value={listId}>{listTitle} (current)</option>
-                    )}
+                    {allUserLists?.map(list => (
+                      <option key={list.id} value={list.id}>
+                        {list.title}
+                      </option>
+                    ))}
                   </select>
                 ) : (
                   <h1 className="text-3xl font-bold text-gray-900">
@@ -213,7 +208,7 @@ export default function ListPage() {
 
           {/* Shopping List Component */}
           <div className="max-w-2xl mx-auto">
-            <ShoppingList listId={listId} items={listItems} />
+            <ShoppingList listId={listId} items={listItems || []} />
           </div>
         </div>
       </div>

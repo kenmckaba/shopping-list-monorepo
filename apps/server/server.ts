@@ -8,11 +8,11 @@ import { makeExecutableSchema } from '@graphql-tools/schema'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
 import { PrismaClient } from '@prisma/client'
 import cors from 'cors'
+import 'dotenv/config'
 import express from 'express'
 import { gql } from 'graphql-tag'
 import { useServer } from 'graphql-ws/lib/use/ws'
 import { WebSocketServer } from 'ws'
-import 'dotenv/config'
 
 // Initialize Prisma Client with libSQL adapter
 if (!process.env.DATABASE_URL) {
@@ -756,7 +756,14 @@ const server = new ApolloServer({
   ],
 })
 
-await server.start()
+// Start the GraphQL server with error handling
+try {
+  await server.start()
+  console.log('✅ Apollo Server started successfully')
+} catch (error) {
+  console.error('❌ Failed to start Apollo Server:', error)
+  process.exit(1)
+}
 
 // Set up our Express middleware to handle CORS, body parsing,
 // and our expressMiddleware function
@@ -765,6 +772,10 @@ const getAllowedOrigins = () => {
   const allowedStringOrigins = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
+    'http://localhost:3001', // For port conflicts
+    'http://127.0.0.1:3001', // For port conflicts
+    'http://localhost:3002', // Alternative port
+    'http://127.0.0.1:3002', // Alternative port
   ]
 
   // Get origins from environment variable (comma-separated)
@@ -776,9 +787,9 @@ const getAllowedOrigins = () => {
 
   // Development regex patterns
   const developmentPatterns = [
-    /^http:\/\/192\.168\.[0-9]+\.[0-9]+:3000$/,
-    /^http:\/\/10\.[0-9]+\.[0-9]+\.[0-9]+:3000$/,
-    /^http:\/\/172\.(1[6-9]|2[0-9]|3[0-1])\.[0-9]+\.[0-9]+:3000$/,
+    /^http:\/\/192\.168\.[0-9]+\.[0-9]+:(3000|3001|3002)$/,
+    /^http:\/\/10\.[0-9]+\.[0-9]+\.[0-9]+:(3000|3001|3002)$/,
+    /^http:\/\/172\.(1[6-9]|2[0-9]|3[0-1])\.[0-9]+\.[0-9]+:(3000|3001|3002)$/,
   ]
 
   // Return a function that checks both string matches and regex matches
@@ -830,8 +841,8 @@ const HOST = process.env.HOST || '0.0.0.0'
 
 // Now that our HTTP server is fully set up, we can listen to it
 httpServer.listen(PORT, HOST, () => {
-  console.log(`Server is now running on http://${HOST}:${PORT}/graphql`)
-  console.log(`Subscriptions ready at ws://${HOST}:${PORT}/graphql`)
+  console.log(`🚀 Server is now running on http://${HOST}:${PORT}/graphql`)
+  console.log(`📡 Subscriptions ready at ws://${HOST}:${PORT}/graphql`)
 
   // For development, show the local network access URLs
   if (HOST === '0.0.0.0') {
@@ -842,6 +853,23 @@ httpServer.listen(PORT, HOST, () => {
       '\nTo find your IP address, run: ipconfig (Windows) or ifconfig (Mac/Linux)'
     )
   }
+})
+
+// Add error handling for the HTTP server
+httpServer.on('error', error => {
+  console.error('❌ HTTP Server error:', error)
+  process.exit(1)
+})
+
+// Handle uncaught exceptions and promise rejections
+process.on('uncaughtException', error => {
+  console.error('❌ Uncaught Exception:', error)
+  process.exit(1)
+})
+
+process.on('unhandledRejection', reason => {
+  console.error('❌ Unhandled Promise Rejection:', reason)
+  process.exit(1)
 })
 
 ///// Query, Mutation, Subscription

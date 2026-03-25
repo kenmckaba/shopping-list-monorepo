@@ -169,7 +169,7 @@ export default function UserListsPage() {
       </div>
     )
 
-  const lists = data?.getUserAccessibleLists || []
+  const lists = data?.getUserAccessibleLists
 
   return (
     <ProtectedRoute>
@@ -180,9 +180,7 @@ export default function UserListsPage() {
               <h1 className="text-3xl font-bold text-gray-900">
                 My Shopping Lists
               </h1>
-              <p className="text-gray-600 mt-1">
-                Welcome back, {user?.name || 'User'}!
-              </p>
+              <p className="text-gray-600 mt-1">Welcome back, {user?.name}!</p>
             </div>
             <button
               type="submit"
@@ -194,7 +192,7 @@ export default function UserListsPage() {
           </div>
 
           <div className="max-w-2xl mx-auto">
-            {lists.length === 0 ? (
+            {lists?.length === 0 ? (
               <div className="bg-white rounded-lg shadow-md p-8 text-center">
                 <h2 className="text-xl font-semibold text-gray-900 mb-2">
                   No Lists Yet
@@ -220,7 +218,7 @@ export default function UserListsPage() {
                   </Link>
                 </div>
 
-                {lists.map(list => {
+                {lists?.map(list => {
                   const totalItems = list.items.length
 
                   return (

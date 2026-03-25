@@ -332,12 +332,8 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                 .filter(item => item.isCompleted)
                 .sort((a, b) => {
                   // Sort by updatedAt (most recent first), fallback to addedAt if updatedAt is missing
-                  const dateA = new Date(
-                    a.updatedAt || a.addedAt || ''
-                  ).getTime()
-                  const dateB = new Date(
-                    b.updatedAt || b.addedAt || ''
-                  ).getTime()
+                  const dateA = new Date(a.updatedAt || a.addedAt).getTime()
+                  const dateB = new Date(b.updatedAt || b.addedAt).getTime()
                   return dateB - dateA
                 })
               return completedItems.length > 0 ? (
