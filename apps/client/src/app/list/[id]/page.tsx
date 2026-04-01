@@ -158,29 +158,20 @@ export default function ListPage() {
         <div className="container mx-auto px-4 py-2">
           {/* Header */}
           <div className="mb-8">
-            {user ? (
+            {
               <button
                 type="button"
                 onClick={() => {
-                  console.log('Navigating to lists page for user:', user.id)
-                  window.location.href = `/user/${user.id}/lists`
+                  if (user?.id) {
+                    console.log('Navigating to lists page for user:', user.id)
+                    window.location.href = `/user/${user.id}/lists`
+                  }
                 }}
                 className="text-primary-600 hover:underline mb-2 inline-block cursor-pointer bg-transparent border-none p-2 text-left hover:bg-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 ← Back to Lists
               </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  console.log('Navigating to home page')
-                  window.location.href = '/'
-                }}
-                className="text-primary-600 hover:underline mb-2 inline-block cursor-pointer bg-transparent border-none p-2 text-left hover:bg-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
-              >
-                ← Back to Home
-              </button>
-            )}
+            }
             <div className="flex items-center justify-center">
               <div className="text-center">
                 {/* Always show dropdown if user exists, with fallback */}
@@ -188,7 +179,7 @@ export default function ListPage() {
                   <select
                     value={listId}
                     onChange={e => handleListChange(e.target.value)}
-                    className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 bg-white border-2 border-gray-300 rounded-lg px-2 sm:px-4 py-1 sm:py-2 cursor-pointer hover:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl"
+                    className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 text-center bg-white border-2 border-gray-300 rounded-lg px-2 sm:px-4 py-1 sm:py-2 cursor-pointer hover:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl"
                     aria-label="Select a shopping list"
                   >
                     {allUserLists?.map(list => (

@@ -283,7 +283,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3 flex-1">
-                          <label className="flex items-center space-x-3 cursor-pointer">
+                          <div className="flex items-center space-x-3">
                             <input
                               type="checkbox"
                               name="itemCompleted"
@@ -294,7 +294,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                                   listItem.isCompleted
                                 )
                               }
-                              className="h-5 w-5 text-primary-600 rounded focus:ring-primary-500 touch-target"
+                              className="text-primary-600 rounded focus:ring-primary-500"
                               aria-label={`Mark ${listItem.item.name} as ${listItem.isCompleted ? 'incomplete' : 'complete'}`}
                             />
                             <div>
@@ -307,13 +307,13 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                                 </p>
                               )}
                             </div>
-                          </label>
+                          </div>
                         </div>
                         <div className="flex items-center space-x-2">
                           <button
                             type="button"
                             onClick={() => handleRemoveItem(listItem.id)}
-                            className="w-8 h-8 rounded-lg border border-red-300 bg-red-50 flex items-center justify-center text-red-600 hover:bg-red-100 touch-target"
+                            className="w-8 h-8 rounded-lg border border-red-300 bg-red-50 flex items-center justify-center text-red-600 hover:bg-red-100"
                             aria-label={`Remove ${listItem.item.name} from list`}
                           >
                             ×
@@ -348,7 +348,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3 flex-1">
-                          <label className="flex items-center space-x-3 cursor-pointer">
+                          <div className="flex items-center space-x-3">
                             <input
                               type="checkbox"
                               name="itemCompleted"
@@ -359,7 +359,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                                   listItem.isCompleted
                                 )
                               }
-                              className="h-5 w-5 text-primary-600 rounded focus:ring-primary-500 touch-target"
+                              className="h-4 w-4 text-primary-600 rounded focus:ring-primary-500 touch-target"
                               aria-label={`Mark ${listItem.item.name} as ${listItem.isCompleted ? 'incomplete' : 'complete'}`}
                             />
                             <div className="line-through text-gray-500">
@@ -372,7 +372,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                                 </p>
                               )}
                             </div>
-                          </label>
+                          </div>
                         </div>
                       </div>
                     </div>

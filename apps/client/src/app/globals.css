@@ -139,12 +139,6 @@
   }
 }
 
-/* Touch-friendly interactions */
-.touch-target {
-  min-height: 44px;
-  min-width: 44px;
-}
-
 /* PWA specific styles */
 @media (display-mode: standalone) {
   body {
