@@ -38,6 +38,10 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
   const [newItemQuantity, setNewItemQuantity] = useState(1)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [itemToDelete, setItemToDelete] = useState<{
+    id: string
+    name: string
+  } | null>(null)
   const client = useApolloClient()
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -216,18 +220,56 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
     }
   }
 
-  const handleRemoveItem = async (itemId: string) => {
+  const handleRemoveItem = async (itemId: string, itemName: string) => {
+    setItemToDelete({ id: itemId, name: itemName })
+  }
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return
+
     try {
       await removeItemFromList({
-        variables: { id: itemId },
+        variables: { id: itemToDelete.id },
       })
+      setItemToDelete(null)
     } catch (error) {
       console.error('Error removing item:', error)
     }
   }
 
+  const cancelDelete = () => {
+    setItemToDelete(null)
+  }
+
   return (
     <div className="space-y-4">
+      {/* Delete Confirmation Modal */}
+      {itemToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm mx-4">
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete "{itemToDelete.name}"?
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                type="button"
+                onClick={cancelDelete}
+                className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Add Item Form */}
       <form
         onSubmit={handleAddItem}
@@ -253,7 +295,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                 setNewItemName(e.target.value)
                 if (error) setError(null) // Clear error when user starts typing
               }}
-              placeholder="Add a new item"
+              placeholder="Add an item"
               className={`input flex-1 ${error ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
               required
               disabled={isSubmitting}
@@ -318,7 +360,9 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                         <div className="flex items-center space-x-2">
                           <button
                             type="button"
-                            onClick={() => handleRemoveItem(listItem.id)}
+                            onClick={() =>
+                              handleRemoveItem(listItem.id, listItem.item.name)
+                            }
                             className="w-8 h-8 rounded-lg border border-red-300 bg-red-50 flex items-center justify-center text-red-600 hover:bg-red-100"
                             aria-label={`Remove ${listItem.item.name} from list`}
                           >
