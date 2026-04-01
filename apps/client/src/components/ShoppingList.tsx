@@ -12,7 +12,7 @@ import {
   ITEM_UPDATED,
 } from '@/lib/graphql/subscriptions'
 import { useApolloClient, useMutation, useSubscription } from '@apollo/client'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 interface ListItem {
   id: string
@@ -39,6 +39,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const client = useApolloClient()
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const [addItemToList] = useMutation(ADD_ITEM_TO_LIST, {
     onCompleted: () => {
@@ -46,6 +47,10 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
       setNewItemQuantity(1)
       setError(null)
       setIsSubmitting(false)
+      // Focus the input field after a brief delay to ensure DOM is ready
+      setTimeout(() => {
+        inputRef.current?.focus()
+      }, 10)
     },
     onError: error => {
       setIsSubmitting(false)
@@ -241,6 +246,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
               type="text"
               id="itemName"
               name="itemName"
+              ref={inputRef}
               autoComplete="off"
               value={newItemName}
               onChange={e => {
