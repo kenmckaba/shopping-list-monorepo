@@ -261,8 +261,8 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
           </div>
           <button
             type="submit"
-            className="btn btn-primary"
-            disabled={isSubmitting}
+            className={`btn btn-primary ${isSubmitting || !newItemName.trim() ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={isSubmitting || !newItemName.trim()}
           >
             {isSubmitting ? 'Adding...' : 'Add'}
           </button>
