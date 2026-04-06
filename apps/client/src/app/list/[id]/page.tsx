@@ -145,7 +145,7 @@ export default function ListPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-red-600 mb-2">Error</h1>
-          <p className="text-gray-600">Failed to load list: {error.message}</p>
+          <p className="text-muted-foreground">Failed to load list: {error.message}</p>
           <Link href="/" className="btn btn-primary mt-4 inline-block">
             Go Back Home
           </Link>
@@ -155,7 +155,7 @@ export default function ListPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-2">
           {/* Header */}
           <div className="mb-4">
@@ -168,7 +168,7 @@ export default function ListPage() {
                     window.location.href = `/user/${user.id}/lists`
                   }
                 }}
-                className="text-primary-600 hover:underline inline-block cursor-pointer bg-transparent border-none p-2 text-left hover:bg-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="text-primary hover:underline inline-block cursor-pointer bg-transparent border-none p-2 text-left hover:bg-accent rounded focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 ← Back to Lists
               </button>
@@ -181,7 +181,7 @@ export default function ListPage() {
                   <select
                     value={listId}
                     onChange={e => handleListChange(e.target.value)}
-                    className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 text-center bg-white border-2 border-gray-300 rounded-lg px-2 sm:px-4 py-1 sm:py-2 cursor-pointer hover:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl"
+                    className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-foreground text-center bg-background border-2 border-input rounded-lg px-2 sm:px-4 py-1 sm:py-2 cursor-pointer hover:border-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl"
                     aria-label="Select a shopping list"
                   >
                     {allUserLists?.map(list => (
@@ -191,7 +191,7 @@ export default function ListPage() {
                     ))}
                   </select>
                 ) : (
-                  <h1 className="text-3xl font-bold text-gray-900">
+                  <h1 className="text-3xl font-bold text-foreground">
                     {listTitle}
                   </h1>
                 )}
