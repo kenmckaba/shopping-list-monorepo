@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node dist/server.js",
-    "dev": "npx tsx watch server.ts",
+    "dev": "cross-env NODE_OPTIONS= npx tsx watch server.ts",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "biome lint .",
@@ -47,6 +47,7 @@
     "@types/express": "^5.0.6",
     "@types/node": "^20.19.37",
     "@types/ws": "^8.18.1",
+    "cross-env": "^10.1.0",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"
   }

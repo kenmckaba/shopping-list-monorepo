@@ -6,6 +6,9 @@
   "workspaces": [
     "apps/*"
   ],
+  "resolutions": {
+    "get-intrinsic": "1.1.3"
+  },
   "scripts": {
     "dev": "concurrently \"yarn workspace shopping-list-client run dev\" \"yarn workspace shopping-list-server run dev\"",
     "dev:client": "yarn workspace shopping-list-client run dev",
@@ -20,6 +23,7 @@
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
+    "cross-env": "^10.1.0",
     "rimraf": "^5.0.5"
   },
   "keywords": [
