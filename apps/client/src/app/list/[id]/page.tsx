@@ -145,7 +145,9 @@ export default function ListPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-red-600 mb-2">Error</h1>
-          <p className="text-muted-foreground">Failed to load list: {error.message}</p>
+          <p className="text-muted-foreground">
+            Failed to load list: {error.message}
+          </p>
           <Link href="/" className="btn btn-primary mt-4 inline-block">
             Go Back Home
           </Link>
