@@ -2,6 +2,7 @@
 
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { ShoppingList } from '@/components/ShoppingList'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { useAuth } from '@/contexts/AuthContext'
 import {
   GET_LIST_BY_ID,
@@ -158,7 +159,7 @@ export default function ListPage() {
         <div className="container mx-auto px-4 py-2">
           {/* Header */}
           <div className="mb-4">
-            {
+            <div className="flex justify-between items-center mb-2">
               <button
                 type="button"
                 onClick={() => {
@@ -167,11 +168,12 @@ export default function ListPage() {
                     window.location.href = `/user/${user.id}/lists`
                   }
                 }}
-                className="text-primary-600 hover:underline mb-2 inline-block cursor-pointer bg-transparent border-none p-2 text-left hover:bg-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="text-primary-600 hover:underline inline-block cursor-pointer bg-transparent border-none p-2 text-left hover:bg-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 ← Back to Lists
               </button>
-            }
+              <ThemeToggle />
+            </div>
             <div className="flex items-center justify-center">
               <div className="text-center">
                 {/* Always show dropdown if user exists, with fallback */}

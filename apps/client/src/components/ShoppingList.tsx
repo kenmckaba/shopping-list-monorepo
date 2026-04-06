@@ -1,6 +1,5 @@
 'use client'
 
-import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -246,11 +245,6 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
 
   return (
     <div className="space-y-4">
-      {/* Header with Theme Toggle */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-foreground">Shopping List</h2>
-        <ThemeToggle />
-      </div>
       {/* Delete Confirmation Modal */}
       {itemToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
