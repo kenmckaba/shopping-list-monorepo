@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { ThemeProvider } from '@/components/theme-provider'
 import { ApolloWrapper } from '@/lib/apollo-wrapper'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -34,11 +35,18 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <ErrorBoundary>
-          <ApolloWrapper>{children}</ApolloWrapper>
-        </ErrorBoundary>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ErrorBoundary>
+            <ApolloWrapper>{children}</ApolloWrapper>
+          </ErrorBoundary>
+        </ThemeProvider>
       </body>
     </html>
   )

@@ -1,5 +1,8 @@
 'use client'
 
+import { ThemeToggle } from '@/components/theme-toggle'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   ADD_ITEM_TO_LIST,
   REMOVE_ITEM_FROM_LIST,
@@ -243,28 +246,25 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
 
   return (
     <div className="space-y-4">
+      {/* Header with Theme Toggle */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-foreground">Shopping List</h2>
+        <ThemeToggle />
+      </div>
       {/* Delete Confirmation Modal */}
       {itemToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-sm mx-4">
-            <p className="text-gray-600 mb-6">
+          <div className="bg-background border rounded-lg p-6 max-w-sm mx-4">
+            <p className="text-muted-foreground mb-6">
               Are you sure you want to delete "{itemToDelete.name}"?
             </p>
             <div className="flex gap-3 justify-end">
-              <button
-                type="button"
-                onClick={cancelDelete}
-                className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"
-              >
+              <Button variant="outline" onClick={cancelDelete}>
                 Cancel
-              </button>
-              <button
-                type="button"
-                onClick={confirmDelete}
-                className="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700"
-              >
+              </Button>
+              <Button variant="destructive" onClick={confirmDelete}>
                 Delete
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -273,12 +273,12 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
       {/* Add Item Form */}
       <form
         onSubmit={handleAddItem}
-        className="bg-white p-1 rounded-lg shadow-md"
+        className="bg-card p-4 rounded-lg shadow-md border"
       >
         {/* Error Message */}
         {error && (
-          <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-red-700 text-sm">{error}</p>
+          <div className="mb-3 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+            <p className="text-destructive text-sm">{error}</p>
           </div>
         )}
 
@@ -287,7 +287,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
             <label htmlFor="itemName" className="sr-only">
               Add new item to shopping list
             </label>
-            <input
+            <Input
               type="text"
               id="itemName"
               name="itemName"
@@ -299,25 +299,21 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                 if (error) setError(null) // Clear error when user starts typing
               }}
               placeholder="Add an item"
-              className={`input flex-1 ${error ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
+              className={error ? 'border-destructive' : ''}
               required
               disabled={isSubmitting}
             />
           </div>
-          <button
-            type="submit"
-            className={`btn btn-primary ${isSubmitting || !newItemName.trim() ? 'opacity-50 cursor-not-allowed' : ''}`}
-            disabled={isSubmitting || !newItemName.trim()}
-          >
+          <Button type="submit" disabled={isSubmitting || !newItemName.trim()}>
             {isSubmitting ? 'Adding...' : 'Add'}
-          </button>
+          </Button>
         </div>
       </form>
 
       {/* Items List */}
       <div className="space-y-6">
         {items.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-muted-foreground">
             No items in this list yet. Add some items to get started!
           </div>
         ) : (
@@ -330,7 +326,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                   {uncompletedItems.map(listItem => (
                     <div
                       key={listItem.id}
-                      className="w-full bg-white p-1 rounded-lg shadow-sm border-l-4 border-blue-500 hover:bg-gray-50 transition-colors"
+                      className="w-full bg-card p-1 rounded-lg shadow-sm border-l-4 border-blue-500 hover:bg-accent transition-colors"
                     >
                       <div className="flex items-center justify-between">
                         <label
@@ -360,16 +356,17 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                           </div>
                         </label>
                         <div className="flex items-center space-x-2">
-                          <button
-                            type="button"
+                          <Button
+                            variant="outline"
+                            size="icon"
                             onClick={() => {
                               handleRemoveItem(listItem.id, listItem.item.name)
                             }}
-                            className="w-10 h-10 rounded-lg border border-red-300 bg-red-50 flex items-center justify-center text-red-600 hover:bg-red-100 text-lg font-bold"
+                            className="w-10 h-10 border-destructive/30 text-destructive hover:bg-destructive/10"
                             aria-label={`Remove ${listItem.item.name} from list`}
                           >
                             ×
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -390,13 +387,13 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                 })
               return completedItems.length > 0 ? (
                 <div className="space-y-2">
-                  <h4 className="text-sm font-bold text-gray-500 border-t pt-4">
+                  <h4 className="text-sm font-bold text-muted-foreground border-t pt-4">
                     Completed Items ({completedItems.length})
                   </h4>
                   {completedItems.map(listItem => (
                     <div
                       key={listItem.id}
-                      className="w-full bg-white p-1 rounded-lg shadow-sm border-l-4 border-green-500 hover:bg-gray-50 transition-colors"
+                      className="w-full bg-card p-1 rounded-lg shadow-sm border-l-4 border-green-500 hover:bg-accent transition-colors"
                     >
                       <div className="flex items-center justify-between">
                         <label
