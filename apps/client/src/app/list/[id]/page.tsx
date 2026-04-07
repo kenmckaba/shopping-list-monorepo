@@ -4,10 +4,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { ShoppingList } from '@/components/ShoppingList'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { useAuth } from '@/contexts/AuthContext'
-import {
-  GET_LIST_BY_ID,
-  GET_LIST_ITEMS,
-} from '@/lib/graphql/queries'
+import { GET_LIST_BY_ID, GET_LIST_ITEMS } from '@/lib/graphql/queries'
 import { useQuery } from '@apollo/client'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
