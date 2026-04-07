@@ -7,12 +7,11 @@ import { useAuth } from '@/contexts/AuthContext'
 import {
   GET_LIST_BY_ID,
   GET_LIST_ITEMS,
-  GET_USER_ACCESSIBLE_LISTS,
 } from '@/lib/graphql/queries'
 import { useQuery } from '@apollo/client'
 import Link from 'next/link'
-import { useParams, useRouter } from 'next/navigation'
-import { useCallback, useEffect } from 'react'
+import { useParams } from 'next/navigation'
+import { useEffect } from 'react'
 
 interface ListItem {
   id: string
@@ -42,7 +41,6 @@ interface ListItem {
 
 export default function ListPage() {
   const params = useParams()
-  const router = useRouter()
   const listId = params.id as string
   const { user, updateLastOpenedList } = useAuth()
 
@@ -74,24 +72,6 @@ export default function ListPage() {
     skip: !listId,
   })
 
-  // Query for all lists the user has access to (this should include both owned and shared)
-  const { data: userData } = useQuery<{
-    getUserAccessibleLists: {
-      id: string
-      title: string
-      description?: string
-      isPublic: boolean
-      createdAt: string
-      owner: {
-        id: string
-        name: string
-      }
-    }[]
-  }>(GET_USER_ACCESSIBLE_LISTS, {
-    variables: { userId: user?.id },
-    skip: !user?.id,
-  })
-
   // Update the last opened list when this page loads
   useEffect(() => {
     if (user && listId) {
@@ -102,36 +82,6 @@ export default function ListPage() {
   const listItems = data?.getListItems
   const listInfo = listData?.getShoppingListById
   const listTitle = listInfo?.title
-  const listOwner = listInfo?.owner
-
-  // Get all lists the user has access to (much simpler now!)
-  const userAccessibleLists = userData?.getUserAccessibleLists
-
-  // Always include current list if it's not already in accessible lists
-  const currentListInfo = {
-    id: listId,
-    title: listTitle,
-    owner: listOwner,
-  }
-
-  const isCurrentListInAccessibleLists = userAccessibleLists?.some(
-    list => list.id === listId
-  )
-  const allUserLists = isCurrentListInAccessibleLists
-    ? userAccessibleLists
-    : userAccessibleLists
-      ? [...userAccessibleLists, currentListInfo]
-      : [currentListInfo]
-
-  // Handle list selection change
-  const handleListChange = useCallback(
-    (selectedListId: string) => {
-      if (selectedListId !== listId) {
-        router.push(`/list/${selectedListId}`)
-      }
-    },
-    [listId, router]
-  )
 
   if (loading)
     return (
@@ -178,25 +128,9 @@ export default function ListPage() {
             </div>
             <div className="flex items-center justify-center">
               <div className="text-center">
-                {/* Always show dropdown if user exists, with fallback */}
-                {user ? (
-                  <select
-                    value={listId}
-                    onChange={e => handleListChange(e.target.value)}
-                    className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-foreground text-center bg-background border-2 border-input rounded-lg px-2 sm:px-4 py-1 sm:py-2 cursor-pointer hover:border-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl"
-                    aria-label="Select a shopping list"
-                  >
-                    {allUserLists?.map(list => (
-                      <option key={list.id} value={list.id}>
-                        {list.title}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <h1 className="text-3xl font-bold text-foreground">
-                    {listTitle}
-                  </h1>
-                )}
+                <h1 className="text-3xl font-bold text-foreground">
+                  {listTitle}
+                </h1>
               </div>
             </div>
           </div>
