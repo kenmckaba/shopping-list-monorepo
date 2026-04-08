@@ -107,8 +107,8 @@ export default function ListPage() {
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-2">
           {/* Header */}
-          <div className="mb-4">
-            <div className="flex justify-between items-center mb-2">
+          <div>
+            <div className="flex justify-between items-center">
               <button
                 type="button"
                 onClick={() => {
@@ -125,7 +125,7 @@ export default function ListPage() {
             </div>
             <div className="flex items-center justify-center">
               <div className="text-center">
-                <h1 className="text-3xl font-bold text-foreground">
+                <h1 className="text-2xl font-bold text-foreground">
                   {listTitle}
                 </h1>
               </div>

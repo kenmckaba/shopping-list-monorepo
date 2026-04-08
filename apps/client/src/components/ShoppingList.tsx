@@ -350,7 +350,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
       {/* Add Item Form */}
       <form
         onSubmit={handleAddItem}
-        className="bg-card p-4 rounded-lg shadow-md border"
+        className="bg-card p-1 rounded-lg shadow-md border"
       >
         {/* Error Message */}
         {error && (
@@ -403,7 +403,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                   {uncompletedItems.map(listItem => (
                     <div
                       key={listItem.id}
-                      className="w-full bg-card p-1 rounded-lg shadow-sm border-l-4 border-blue-500 hover:bg-accent transition-colors"
+                      className="w-full bg-card p-1 rounded-lg shadow-sm border-l-4 border-primary hover:bg-accent transition-colors"
                     >
                       <div className="flex items-center justify-between">
                         <label
@@ -501,7 +501,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                   {completedItems.map(listItem => (
                     <div
                       key={listItem.id}
-                      className="w-full bg-card p-1 rounded-lg shadow-sm border-l-4 border-green-500 hover:bg-accent transition-colors"
+                      className="w-full bg-card p-1 rounded-lg shadow-sm border-l-4 border-success hover:bg-accent transition-colors"
                     >
                       <div className="flex items-center justify-between">
                         <label
