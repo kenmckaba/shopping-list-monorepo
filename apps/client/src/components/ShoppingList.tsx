@@ -416,6 +416,19 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                             )}
                           </div>
                         </label>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => {
+                              handleRemoveItem(listItem.id, listItem.item.name)
+                            }}
+                            className="w-10 h-10 border-destructive/30 text-destructive hover:bg-destructive/10"
+                            aria-label={`Remove ${listItem.item.name} from list`}
+                          >
+                            ×
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
