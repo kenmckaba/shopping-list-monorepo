@@ -44,6 +44,9 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
     id: string
     name: string
   } | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [isUnchecking, setIsUnchecking] = useState(false)
+  const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false)
   const client = useApolloClient()
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -243,6 +246,62 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
     setItemToDelete(null)
   }
 
+  const handleDeleteCompleted = async () => {
+    setShowDeleteAllConfirm(true)
+  }
+
+  const confirmDeleteCompleted = async () => {
+    const completedItems = items.filter(item => item.isCompleted)
+    if (completedItems.length === 0) return
+
+    setIsDeleting(true)
+    setShowDeleteAllConfirm(false)
+
+    try {
+      // Delete all completed items
+      await Promise.all(
+        completedItems.map(item =>
+          removeItemFromList({
+            variables: { id: item.id },
+          })
+        )
+      )
+    } catch (error) {
+      console.error('Error deleting completed items:', error)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const cancelDeleteCompleted = () => {
+    setShowDeleteAllConfirm(false)
+  }
+
+  const handleUncheckAll = async () => {
+    const completedItems = items.filter(item => item.isCompleted)
+    if (completedItems.length === 0) return
+
+    setIsUnchecking(true)
+
+    try {
+      // Uncheck all completed items
+      await Promise.all(
+        completedItems.map(item =>
+          updateListItem({
+            variables: {
+              id: item.id,
+              isCompleted: false,
+            },
+          })
+        )
+      )
+    } catch (error) {
+      console.error('Error unchecking items:', error)
+    } finally {
+      setIsUnchecking(false)
+    }
+  }
+
   return (
     <div className="space-y-4">
       {/* Delete Confirmation Modal */}
@@ -258,6 +317,30 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
               </Button>
               <Button variant="destructive" onClick={confirmDelete}>
                 Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete All Completed Items Confirmation Modal */}
+      {showDeleteAllConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-background border rounded-lg p-6 max-w-sm mx-4">
+            <p className="text-muted-foreground mb-6">
+              Are you sure you want to delete all completed items? This action
+              cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" onClick={cancelDeleteCompleted}>
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={confirmDeleteCompleted}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete All'}
               </Button>
             </div>
           </div>
@@ -381,9 +464,40 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                 })
               return completedItems.length > 0 ? (
                 <div className="space-y-2">
-                  <h4 className="text-sm font-bold text-muted-foreground border-t pt-4">
-                    Completed Items ({completedItems.length})
-                  </h4>
+                  <div className="flex items-center justify-between border-t pt-4">
+                    <h4 className="font-bold text-muted-foreground">
+                      Checked ({completedItems.length})
+                    </h4>
+                    {/* Bulk Actions */}
+                    <div className="flex gap-2">
+                      {/* Uncheck All Button */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleUncheckAll}
+                        disabled={
+                          items.filter(item => item.isCompleted).length === 0 ||
+                          isUnchecking
+                        }
+                      >
+                        {isUnchecking ? 'Unchecking...' : 'Uncheck All'}
+                      </Button>
+                      {/* Delete Completed Items Button */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleDeleteCompleted}
+                        disabled={
+                          items.filter(item => item.isCompleted).length === 0 ||
+                          isDeleting
+                        }
+                        className="text-destructive border-destructive/30 hover:bg-destructive/10"
+                      >
+                        {isDeleting ? 'Deleting...' : 'Delete all'}
+                      </Button>
+                    </div>
+                  </div>
+
                   {completedItems.map(listItem => (
                     <div
                       key={listItem.id}
