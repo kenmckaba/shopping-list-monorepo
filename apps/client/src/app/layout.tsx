@@ -12,8 +12,7 @@ export const metadata: Metadata = {
   description: 'A PWA for managing shopping lists',
   manifest: '/manifest.json',
   icons: {
-    icon: '/favicon.ico',
-    apple: '/icons/icon-192x192.png',
+    icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNCIgZmlsbD0iIzFkNGVkOCIvPgo8cGF0aCBkPSJNMTAgMTBoMTJ2MkgxMHoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0xMCAxNGgxMnYySDE0eiIgZmlsbD0id2hpdGUiLz4KPHA+dGggZD0iTTEwIDE4aDEydjJIMTB6IiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4=',
   },
   appleWebApp: {
     capable: true,

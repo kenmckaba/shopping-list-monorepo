@@ -428,7 +428,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
             {(() => {
               const uncompletedItems = items.filter(item => !item.isCompleted)
               return uncompletedItems.length > 0 ? (
-                <div className="space-y-2">
+                <div id="div1" className="space-y-2">
                   {uncompletedItems.map(listItem => (
                     <div
                       key={listItem.id}
