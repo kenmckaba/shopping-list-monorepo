@@ -1,5 +1,6 @@
 'use client'
 
+import { ThemeToggle } from '@/components/theme-toggle'
 import { useAuth } from '@/contexts/AuthContext'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -12,7 +13,7 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: router changes reference on render, causes infinite loops
+  // biome-ignore lint/correctness/useExhaustiveDependencies: router function changes reference on every render, causes infinite loops
   useEffect(() => {
     if (user && !isLoading) {
       // If user is logged in, redirect to their last opened list or lists page
@@ -51,7 +52,7 @@ export default function Home() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600" />
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary" />
       </div>
     )
   }
@@ -62,23 +63,26 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <div className="max-w-md w-full space-y-8 p-8">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+          <h1 className="text-4xl font-bold text-foreground mb-2">
             Shopping List App
           </h1>
-          <p className="text-xl text-gray-600 mb-8">
+          <p className="text-xl text-muted-foreground mb-8">
             Sign in to manage your shopping lists
           </p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-8">
+        <div className="bg-card rounded-lg shadow-md border p-8">
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-medium text-card-foreground mb-2"
               >
                 Email Address
               </label>
@@ -89,7 +93,7 @@ export default function Home() {
                 autoComplete="username email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                className="input text-foreground"
                 placeholder="Enter your email address"
                 required
                 disabled={isSubmitting}
@@ -97,15 +101,15 @@ export default function Home() {
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-3">
-                <p className="text-sm text-red-600">{error}</p>
+              <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3">
+                <p className="text-sm text-destructive">{error}</p>
               </div>
             )}
 
             <button
               type="submit"
               disabled={isSubmitting || !email.trim()}
-              className="w-full btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <div className="flex items-center justify-center">
@@ -119,20 +123,22 @@ export default function Home() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Don't have an account?{' '}
               <Link
                 href="/create-user"
-                className="text-primary-600 hover:text-primary-500 font-medium"
+                className="text-primary hover:text-primary/80 font-medium transition-colors"
               >
                 Create one here
               </Link>
             </p>
           </div>
 
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <h3 className="text-sm font-medium text-blue-900 mb-2">Features</h3>
-            <ul className="text-sm text-blue-700 space-y-1">
+          <div className="mt-6 p-4 bg-muted border border-border rounded-lg">
+            <h3 className="text-sm font-medium text-foreground mb-2">
+              Features
+            </h3>
+            <ul className="text-sm text-muted-foreground space-y-1">
               <li>• Create and manage multiple shopping lists</li>
               <li>• Access your lists from any device</li>
               <li>• View public lists shared by others</li>

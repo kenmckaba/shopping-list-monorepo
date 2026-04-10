@@ -332,12 +332,12 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 bg-secondary p-4 rounded-lg">
       {/* Delete Confirmation Modal */}
       {itemToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-background border rounded-lg p-6 max-w-sm mx-4">
-            <p className="text-muted-foreground mb-6">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-card border shadow-xl rounded-lg p-6 max-w-sm mx-4">
+            <p className="text-card-foreground mb-6">
               Are you sure you want to delete "{itemToDelete.name}"?
             </p>
             <div className="flex gap-3 justify-end">
@@ -354,9 +354,9 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
 
       {/* Delete All Completed Items Confirmation Modal */}
       {showDeleteAllConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-background border rounded-lg p-6 max-w-sm mx-4">
-            <p className="text-muted-foreground mb-6">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-background border shadow-xl rounded-lg p-6 max-w-sm mx-4">
+            <p className="text-foreground/70 mb-6">
               Are you sure you want to delete all completed items? This action
               cannot be undone.
             </p>
@@ -379,11 +379,11 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
       {/* Add Item Form */}
       <form
         onSubmit={handleAddItem}
-        className="bg-card p-1 rounded-lg shadow-md border"
+        className="bg-card p-4 rounded-lg shadow-sm border"
       >
         {/* Error Message */}
         {error && (
-          <div className="mb-3 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+          <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
             <p className="text-destructive text-sm">{error}</p>
           </div>
         )}
@@ -432,7 +432,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                   {uncompletedItems.map(listItem => (
                     <div
                       key={listItem.id}
-                      className="w-full bg-card p-1 rounded-lg shadow-sm border-l-4 border-primary hover:bg-accent transition-colors"
+                      className="w-full bg-card p-4 rounded-lg shadow-sm border border-border border-l-4 border-l-primary hover:bg-accent transition-all duration-200"
                     >
                       <div className="flex items-center justify-between">
                         <label
@@ -456,9 +456,11 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                             className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
                           />
                           <div className="ml-2">
-                            <p className="font-medium">{listItem.item.name}</p>
+                            <p className="font-medium text-foreground">
+                              {listItem.item.name}
+                            </p>
                             {listItem.item.category && (
-                              <p className="text-sm text-gray-500">
+                              <p className="text-sm text-muted-foreground">
                                 {listItem.item.category}
                               </p>
                             )}
@@ -471,7 +473,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                             onClick={() => {
                               handleRemoveItem(listItem.id, listItem.item.name)
                             }}
-                            className="w-10 h-10 border-destructive/30 text-destructive hover:bg-destructive/10"
+                            className="w-9 h-9 border-destructive/20 text-destructive/70 hover:bg-destructive/8 hover:text-destructive hover:border-destructive/30 transition-colors"
                             aria-label={`Remove ${listItem.item.name} from list`}
                           >
                             ×
@@ -496,9 +498,9 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                 })
               return completedItems.length > 0 ? (
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between border-t pt-4">
-                    <h4 className="font-bold text-muted-foreground">
-                      Checked ({completedItems.length})
+                  <div className="flex items-center justify-between border-t border-border pt-4">
+                    <h4 className="font-semibold text-muted-foreground">
+                      Completed ({completedItems.length})
                     </h4>
                     {/* Bulk Actions */}
                     <div className="flex gap-2">
@@ -523,7 +525,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                           items.filter(item => item.isCompleted).length === 0 ||
                           isDeleting
                         }
-                        className="text-destructive border-destructive/30 hover:bg-destructive/10"
+                        className="text-destructive/70 border-destructive/20 hover:bg-destructive/8 hover:text-destructive hover:border-destructive/30 transition-colors"
                       >
                         {isDeleting ? 'Deleting...' : 'Delete all'}
                       </Button>
@@ -533,7 +535,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                   {completedItems.map(listItem => (
                     <div
                       key={listItem.id}
-                      className="w-full bg-card p-1 rounded-lg shadow-sm border-l-4 border-success hover:bg-accent transition-colors"
+                      className="w-full bg-muted p-4 rounded-lg shadow-sm border border-border border-l-4 border-l-success hover:bg-muted/80 transition-all duration-200"
                     >
                       <div className="flex items-center justify-between">
                         <label
@@ -556,10 +558,10 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                             }
                             className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
                           />
-                          <div className="line-through text-gray-500 ml-2">
+                          <div className="line-through ml-2 text-muted-foreground">
                             <p className="font-medium">{listItem.item.name}</p>
                             {listItem.item.category && (
-                              <p className="text-sm text-gray-500">
+                              <p className="text-sm text-muted-foreground">
                                 {listItem.item.category}
                               </p>
                             )}
@@ -572,7 +574,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                             onClick={() => {
                               handleRemoveItem(listItem.id, listItem.item.name)
                             }}
-                            className="w-10 h-10 border-destructive/30 text-destructive hover:bg-destructive/10"
+                            className="w-9 h-9 border-destructive/20 text-destructive/70 hover:bg-destructive/8 hover:text-destructive hover:border-destructive/30 transition-colors"
                             aria-label={`Remove ${listItem.item.name} from list`}
                           >
                             ×

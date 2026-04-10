@@ -4,56 +4,56 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 210 24% 16%;
-    --card: 0 0% 100%;
-    --card-foreground: 210 24% 16%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 210 24% 16%;
-    --primary: 173 58% 39%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 154 44% 96%;
-    --secondary-foreground: 166 28% 25%;
-    --muted: 146 24% 97%;
-    --muted-foreground: 159 14% 52%;
-    --accent: 210 5% 92%;
-    --accent-foreground: 210 24% 16%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 154 24% 88%;
-    --input: 154 20% 92%;
-    --ring: 173 58% 39%;
+    --background: 248 250 252; /* slate-50 */
+    --foreground: 30 41 59; /* slate-800 */
+    --card: 255 255 255; /* white */
+    --card-foreground: 30 41 59; /* slate-800 */
+    --popover: 255 255 255; /* white */
+    --popover-foreground: 30 41 59; /* slate-800 */
+    --primary: 37 99 235; /* blue-600 */
+    --primary-foreground: 255 255 255; /* white */
+    --secondary: 241 245 249; /* slate-100 */
+    --secondary-foreground: 71 85 105; /* slate-600 */
+    --muted: 241 245 249; /* slate-100 */
+    --muted-foreground: 100 116 139; /* slate-500 */
+    --accent: 241 245 249; /* slate-100 */
+    --accent-foreground: 71 85 105; /* slate-600 */
+    --destructive: 220 38 38; /* red-600 */
+    --destructive-foreground: 255 255 255; /* white */
+    --border: 226 232 240; /* slate-200 */
+    --input: 226 232 240; /* slate-200 */
+    --ring: 37 99 235; /* blue-600 */
     --radius: 0.5rem;
-    --success: 154 61% 49%;
-    --success-foreground: 0 0% 100%;
-    --warning: 35 91% 62%;
-    --warning-foreground: 0 0% 100%;
+    --success: 34 197 94; /* green-500 */
+    --success-foreground: 255 255 255; /* white */
+    --warning: 245 158 11; /* amber-500 */
+    --warning-foreground: 255 255 255; /* white */
   }
 
   .dark {
-    --background: 166 28% 7%;
-    --foreground: 154 24% 92%;
-    --card: 166 28% 10%;
-    --card-foreground: 154 24% 92%;
-    --popover: 166 28% 10%;
-    --popover-foreground: 154 24% 92%;
-    --primary: 173 58% 45%;
-    --primary-foreground: 166 28% 7%;
-    --secondary: 166 28% 15%;
-    --secondary-foreground: 154 24% 85%;
-    --muted: 166 28% 12%;
-    --muted-foreground: 159 14% 65%;
-    --accent: 166 5% 20%;
-    --accent-foreground: 154 24% 85%;
-    --destructive: 0 72% 58%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 166 28% 18%;
-    --input: 166 28% 15%;
-    --ring: 173 58% 45%;
-    --success: 154 61% 49%;
-    --success-foreground: 0 0% 100%;
-    --warning: 35 91% 62%;
-    --warning-foreground: 166 28% 7%;
+    --background: 15 23 42; /* slate-900 */
+    --foreground: 241 245 249; /* slate-100 */
+    --card: 30 41 59; /* slate-800 */
+    --card-foreground: 241 245 249; /* slate-100 */
+    --popover: 30 41 59; /* slate-800 */
+    --popover-foreground: 241 245 249; /* slate-100 */
+    --primary: 59 130 246; /* blue-500 */
+    --primary-foreground: 15 23 42; /* slate-900 */
+    --secondary: 51 65 85; /* slate-700 */
+    --secondary-foreground: 241 245 249; /* slate-100 */
+    --muted: 51 65 85; /* slate-700 */
+    --muted-foreground: 148 163 184; /* slate-400 */
+    --accent: 51 65 85; /* slate-700 */
+    --accent-foreground: 241 245 249; /* slate-100 */
+    --destructive: 239 68 68; /* red-500 */
+    --destructive-foreground: 255 255 255; /* white */
+    --border: 51 65 85; /* slate-700 */
+    --input: 51 65 85; /* slate-700 */
+    --ring: 59 130 246; /* blue-500 */
+    --success: 34 197 94; /* green-500 */
+    --success-foreground: 255 255 255; /* white */
+    --warning: 245 158 11; /* amber-500 */
+    --warning-foreground: 15 23 42; /* slate-900 */
   }
 
   * {
@@ -71,15 +71,15 @@
   }
 
   .btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-ring;
   }
 
   .btn-secondary {
-    @apply bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500;
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 focus:ring-ring;
   }
 
   .input {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500;
+    @apply w-full px-3 py-2 border border-input bg-background rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring placeholder:text-muted-foreground;
   }
 
   .progress-bar {

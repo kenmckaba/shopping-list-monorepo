@@ -83,7 +83,7 @@ export default function ListPage() {
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600" />
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary" />
       </div>
     )
 
@@ -91,7 +91,7 @@ export default function ListPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-2">Error</h1>
+          <h1 className="text-2xl font-bold text-destructive mb-2">Error</h1>
           <p className="text-muted-foreground">
             Failed to load list: {error.message}
           </p>
@@ -117,7 +117,7 @@ export default function ListPage() {
                     window.location.href = `/user/${user.id}/lists`
                   }
                 }}
-                className="text-primary hover:underline inline-block cursor-pointer bg-transparent border-none p-2 text-left hover:bg-accent rounded focus:outline-none focus:ring-2 focus:ring-ring"
+                className="text-primary hover:text-primary/80 inline-block cursor-pointer bg-transparent border-none p-2 text-left hover:bg-accent rounded focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
               >
                 ← Back to Lists
               </button>

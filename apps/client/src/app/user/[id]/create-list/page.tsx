@@ -66,14 +66,14 @@ export default function CreateListPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 py-12">
+      <div className="min-h-screen bg-background py-12">
         <div className="max-w-md mx-auto">
-          <div className="bg-white rounded-lg shadow-md p-8">
+          <div className="bg-card rounded-lg shadow-md p-8">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-foreground">
                 Create Shopping List
               </h1>
-              <p className="mt-2 text-gray-600">
+              <p className="mt-2 text-muted-foreground">
                 Create a new shopping list to organize your items
               </p>
             </div>
@@ -82,7 +82,7 @@ export default function CreateListPage() {
               <div>
                 <label
                   htmlFor="title"
-                  className="block text-sm font-medium text-gray-700 mb-2"
+                  className="block text-sm font-medium text-foreground mb-2"
                 >
                   List Title *
                 </label>
@@ -94,7 +94,7 @@ export default function CreateListPage() {
                   value={title}
                   onChange={e => setTitle(e.target.value)}
                   placeholder="e.g., Weekly Groceries"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                  className="input"
                   required
                   disabled={isSubmitting}
                 />
@@ -103,7 +103,7 @@ export default function CreateListPage() {
               <div>
                 <label
                   htmlFor="description"
-                  className="block text-sm font-medium text-gray-700 mb-2"
+                  className="block text-sm font-medium text-foreground mb-2"
                 >
                   Description (optional)
                 </label>
@@ -115,7 +115,7 @@ export default function CreateListPage() {
                   value={description}
                   onChange={e => setDescription(e.target.value)}
                   placeholder="Brief description of this shopping list..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                  className="input"
                   disabled={isSubmitting}
                 />
               </div>
@@ -129,18 +129,18 @@ export default function CreateListPage() {
                       type="checkbox"
                       checked={isPublic}
                       onChange={e => setIsPublic(e.target.checked)}
-                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                      className="h-4 w-4 text-primary focus:ring-ring border-input rounded"
                       disabled={isSubmitting}
                     />
                   </div>
                   <div className="ml-3 text-sm">
                     <label
                       htmlFor="isPublic"
-                      className="font-medium text-gray-700"
+                      className="font-medium text-foreground"
                     >
                       Make this list public
                     </label>
-                    <p className="text-gray-500">
+                    <p className="text-muted-foreground">
                       Public lists can be discovered and viewed by others
                     </p>
                   </div>
@@ -171,11 +171,11 @@ export default function CreateListPage() {
               </div>
             </form>
 
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <h3 className="text-sm font-medium text-blue-900 mb-2">
+            <div className="mt-6 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+              <h3 className="text-sm font-medium text-primary mb-2">
                 What happens next?
               </h3>
-              <ul className="text-sm text-blue-700 space-y-1">
+              <ul className="text-sm text-primary/80 space-y-1">
                 <li>• Your list will be created instantly</li>
                 <li>
                   • You'll be taken to your new list to start adding items

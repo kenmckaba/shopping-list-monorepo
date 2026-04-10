@@ -1,6 +1,7 @@
 'use client'
 
 import { ProtectedRoute } from '@/components/ProtectedRoute'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { useAuth } from '@/contexts/AuthContext'
 import { GET_USER_ACCESSIBLE_LISTS } from '@/lib/graphql/queries'
 import {
@@ -152,7 +153,7 @@ export default function UserListsPage() {
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600" />
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary" />
       </div>
     )
 
@@ -160,8 +161,10 @@ export default function UserListsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-2">Error</h1>
-          <p className="text-gray-600">Failed to load lists: {error.message}</p>
+          <h1 className="text-2xl font-bold text-destructive mb-2">Error</h1>
+          <p className="text-muted-foreground">
+            Failed to load lists: {error.message}
+          </p>
           <Link href="/" className="btn btn-primary mt-4 inline-block">
             Go Back Home
           </Link>
@@ -173,31 +176,36 @@ export default function UserListsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-foreground">
                 My Shopping Lists
               </h1>
-              <p className="text-gray-600 mt-1">Welcome back, {user?.name}!</p>
+              <p className="text-muted-foreground mt-1">
+                Welcome back, {user?.name}!
+              </p>
             </div>
-            <button
-              type="submit"
-              onClick={logout}
-              className="btn btn-secondary"
-            >
-              Sign Out
-            </button>
+            <div className="flex items-center space-x-4">
+              <ThemeToggle />
+              <button
+                type="submit"
+                onClick={logout}
+                className="btn btn-secondary"
+              >
+                Sign Out
+              </button>
+            </div>
           </div>
 
           <div className="max-w-2xl mx-auto">
             {lists?.length === 0 ? (
-              <div className="bg-white rounded-lg shadow-md p-8 text-center">
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              <div className="bg-card rounded-lg shadow-md p-8 text-center">
+                <h2 className="text-xl font-semibold text-foreground mb-2">
                   No Lists Yet
                 </h2>
-                <p className="text-gray-600 mb-4">
+                <p className="text-muted-foreground mb-4">
                   Create your first shopping list to get started!
                 </p>
                 <Link
@@ -224,19 +232,19 @@ export default function UserListsPage() {
                   return (
                     <div
                       key={list.id}
-                      className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+                      className="bg-card rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
-                          <h3 className="text-xl font-semibold text-gray-900 mb-1">
+                          <h3 className="text-xl font-semibold text-foreground mb-1">
                             {list.title}
                           </h3>
                           {list.description && (
-                            <p className="text-gray-600 text-sm mb-2">
+                            <p className="text-muted-foreground text-sm mb-2">
                               {list.description}
                             </p>
                           )}
-                          <div className="flex items-center space-x-4 text-sm text-gray-500">
+                          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                             <span>
                               {totalItems} item{totalItems !== 1 ? 's' : ''}
                             </span>
@@ -244,8 +252,8 @@ export default function UserListsPage() {
                             <span
                               className={
                                 list.isPublic
-                                  ? 'text-blue-600'
-                                  : 'text-gray-500'
+                                  ? 'text-primary'
+                                  : 'text-muted-foreground'
                               }
                             >
                               {list.isPublic ? 'Public' : 'Private'}

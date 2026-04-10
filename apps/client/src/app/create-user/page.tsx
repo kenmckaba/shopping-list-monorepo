@@ -1,5 +1,6 @@
 'use client'
 
+import { ThemeToggle } from '@/components/theme-toggle'
 import { CREATE_USER } from '@/lib/graphql/mutations'
 import { GET_USERS } from '@/lib/graphql/queries'
 import { USER_ADDED } from '@/lib/graphql/subscriptions'
@@ -48,30 +49,33 @@ export default function CreateUserPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-md mx-auto">
           <div className="mb-8">
             <Link
               href="/"
-              className="text-primary-600 hover:underline mb-2 inline-block"
+              className="text-primary hover:text-primary/80 mb-2 inline-block transition-colors"
             >
               ← Back to Home
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-foreground">
               Create New User
             </h1>
-            <p className="text-gray-600 mt-2">
+            <p className="text-muted-foreground mt-2">
               Create an account to start managing your shopping lists
             </p>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-card rounded-lg shadow-md border border-border p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label
                   htmlFor="name"
-                  className="block text-sm font-medium text-gray-700 mb-2"
+                  className="block text-sm font-medium text-foreground mb-2"
                 >
                   Full Name
                 </label>
@@ -92,7 +96,7 @@ export default function CreateUserPage() {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-gray-700 mb-2"
+                  className="block text-sm font-medium text-foreground mb-2"
                 >
                   Email Address
                 </label>
@@ -126,11 +130,11 @@ export default function CreateUserPage() {
               </button>
             </form>
 
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <h3 className="text-sm font-medium text-blue-900 mb-2">
+            <div className="mt-6 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+              <h3 className="text-sm font-medium text-primary mb-2">
                 What happens next?
               </h3>
-              <ul className="text-sm text-blue-700 space-y-1">
+              <ul className="text-sm text-primary/80 space-y-1">
                 <li>• Your account will be created instantly</li>
                 <li>• You'll be taken to your personal dashboard</li>
                 <li>• You can start creating shopping lists right away</li>

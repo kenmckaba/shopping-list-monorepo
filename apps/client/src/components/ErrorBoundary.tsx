@@ -44,12 +44,12 @@ export class ErrorBoundary extends React.Component<Props, State> {
     if (this.state.hasError) {
       // You can render any custom fallback UI
       return (
-        <div className="min-h-screen flex items-center justify-center bg-red-50">
+        <div className="min-h-screen flex items-center justify-center bg-destructive/5">
           <div className="text-center p-8">
-            <h2 className="text-2xl font-bold text-red-600 mb-4">
+            <h2 className="text-2xl font-bold text-destructive mb-4">
               Something went wrong
             </h2>
-            <p className="text-gray-700 mb-4">
+            <p className="text-muted-foreground mb-4">
               {this.state.error?.message || 'An unexpected error occurred'}
             </p>
             <button
@@ -57,7 +57,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
               onClick={() =>
                 this.setState({ hasError: false, error: undefined })
               }
-              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+              className="bg-destructive text-destructive-foreground px-4 py-2 rounded hover:bg-destructive/90"
             >
               Try again
             </button>
