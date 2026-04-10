@@ -47,6 +47,9 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isUnchecking, setIsUnchecking] = useState(false)
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false)
+  const [transitioningItems, setTransitioningItems] = useState<Set<string>>(
+    new Set()
+  )
   const client = useApolloClient()
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -213,15 +216,41 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
     itemId: string,
     currentStatus: boolean
   ) => {
+    // If item is currently transitioning, ignore the click
+    if (transitioningItems.has(itemId)) return
+
     try {
-      await updateListItem({
-        variables: {
-          id: itemId,
-          isCompleted: !currentStatus,
-        },
-      })
+      // Add to transitioning state immediately for visual feedback
+      setTransitioningItems(prev => new Set([...prev, itemId]))
+
+      // Wait 500ms before actually updating the item
+      setTimeout(async () => {
+        try {
+          await updateListItem({
+            variables: {
+              id: itemId,
+              isCompleted: !currentStatus,
+            },
+          })
+        } catch (error) {
+          console.error('Error updating item:', error)
+        } finally {
+          // Remove from transitioning state after update completes
+          setTransitioningItems(prev => {
+            const newSet = new Set(prev)
+            newSet.delete(itemId)
+            return newSet
+          })
+        }
+      }, 500)
     } catch (error) {
       console.error('Error updating item:', error)
+      // Remove from transitioning state if there's an error
+      setTransitioningItems(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(itemId)
+        return newSet
+      })
     }
   }
 
@@ -414,7 +443,10 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                             type="checkbox"
                             id={`uncompleted-item-${listItem.id}`}
                             name="itemCompleted"
-                            checked={listItem.isCompleted}
+                            checked={
+                              listItem.isCompleted ||
+                              transitioningItems.has(listItem.id)
+                            }
                             onChange={() =>
                               handleToggleComplete(
                                 listItem.id,
@@ -512,7 +544,10 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                             type="checkbox"
                             id={`completed-item-${listItem.id}`}
                             name="itemCompleted"
-                            checked={listItem.isCompleted}
+                            checked={
+                              listItem.isCompleted &&
+                              !transitioningItems.has(listItem.id)
+                            }
                             onChange={() =>
                               handleToggleComplete(
                                 listItem.id,
