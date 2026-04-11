@@ -457,7 +457,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                                 listItem.isCompleted
                               )
                             }
-                            className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+                            className="w-5 h-5 text-primary-600 rounded focus:ring-primary-500"
                           />
                           <div className="ml-1">
                             <p className="font-medium text-foreground">
@@ -560,7 +560,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                                 listItem.isCompleted
                               )
                             }
-                            className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+                            className="w-5 h-5 text-primary-600 rounded focus:ring-primary-500"
                           />
                           <div className="line-through ml-1 text-muted-foreground">
                             <p className="font-medium">{listItem.item.name}</p>
