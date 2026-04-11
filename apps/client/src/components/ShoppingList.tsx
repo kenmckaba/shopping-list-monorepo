@@ -332,7 +332,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
   }
 
   return (
-    <div className="space-y-4 bg-secondary p-4 rounded-lg">
+    <div className="space-y-4 bg-secondary rounded-lg">
       {/* Delete Confirmation Modal */}
       {itemToDelete && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
@@ -379,7 +379,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
       {/* Add Item Form */}
       <form
         onSubmit={handleAddItem}
-        className="bg-card p-4 rounded-lg shadow-sm border"
+        className="bg-card rounded-lg shadow-sm border"
       >
         {/* Error Message */}
         {error && (
@@ -417,7 +417,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
       </form>
 
       {/* Items List */}
-      <div className="space-y-6">
+      <div id="div0" className="space-y-6">
         {items.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             No items in this list yet. Add some items to get started!
@@ -433,7 +433,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                     <div
                       id="div2"
                       key={listItem.id}
-                      className="w-full bg-card p-2 rounded-lg shadow-sm border border-border border-l-4 border-l-primary hover:bg-accent transition-all duration-200"
+                      className="w-full bg-card p-2 shadow-sm hover:bg-accent transition-all duration-200"
                     >
                       <div
                         id="div3"
@@ -539,7 +539,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                   {completedItems.map(listItem => (
                     <div
                       key={listItem.id}
-                      className="w-full bg-muted p-2 rounded-lg shadow-sm border border-border border-l-4 border-l-success hover:bg-muted/80 transition-all duration-200"
+                      className="w-full bg-muted p-2 rounded-lg shadow-sm  hover:bg-muted/80 transition-all duration-200"
                     >
                       <div className="flex items-center justify-between">
                         <label
