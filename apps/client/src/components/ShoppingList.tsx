@@ -428,16 +428,20 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
             {(() => {
               const uncompletedItems = items.filter(item => !item.isCompleted)
               return uncompletedItems.length > 0 ? (
-                <div id="div1" className="space-y-2">
+                <div id="div1" className="space-y-1">
                   {uncompletedItems.map(listItem => (
                     <div
+                      id="div2"
                       key={listItem.id}
-                      className="w-full bg-card p-4 rounded-lg shadow-sm border border-border border-l-4 border-l-primary hover:bg-accent transition-all duration-200"
+                      className="w-full bg-card p-2 rounded-lg shadow-sm border border-border border-l-4 border-l-primary hover:bg-accent transition-all duration-200"
                     >
-                      <div className="flex items-center justify-between">
+                      <div
+                        id="div3"
+                        className="flex items-center justify-between"
+                      >
                         <label
                           htmlFor={`uncompleted-item-${listItem.id}`}
-                          className="flex items-center space-x-3 flex-1 cursor-pointer"
+                          className="flex items-center space-x-2 flex-1 cursor-pointer"
                         >
                           <input
                             type="checkbox"
@@ -455,7 +459,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                             }
                             className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
                           />
-                          <div className="ml-2">
+                          <div className="ml-1">
                             <p className="font-medium text-foreground">
                               {listItem.item.name}
                             </p>
@@ -497,8 +501,8 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                   return dateB - dateA
                 })
               return completedItems.length > 0 ? (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between border-t border-border pt-4">
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between border-t border-border pt-2">
                     <h4 className="font-semibold text-muted-foreground">
                       Completed ({completedItems.length})
                     </h4>
@@ -535,12 +539,12 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                   {completedItems.map(listItem => (
                     <div
                       key={listItem.id}
-                      className="w-full bg-muted p-4 rounded-lg shadow-sm border border-border border-l-4 border-l-success hover:bg-muted/80 transition-all duration-200"
+                      className="w-full bg-muted p-2 rounded-lg shadow-sm border border-border border-l-4 border-l-success hover:bg-muted/80 transition-all duration-200"
                     >
                       <div className="flex items-center justify-between">
                         <label
                           htmlFor={`completed-item-${listItem.id}`}
-                          className="flex items-center space-x-3 flex-1 cursor-pointer"
+                          className="flex items-center space-x-2 flex-1 cursor-pointer"
                         >
                           <input
                             type="checkbox"
@@ -558,7 +562,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                             }
                             className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
                           />
-                          <div className="line-through ml-2 text-muted-foreground">
+                          <div className="line-through ml-1 text-muted-foreground">
                             <p className="font-medium">{listItem.item.name}</p>
                             {listItem.item.category && (
                               <p className="text-sm text-muted-foreground">
@@ -567,14 +571,14 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                             )}
                           </div>
                         </label>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-1">
                           <Button
                             variant="outline"
                             size="icon"
                             onClick={() => {
                               handleRemoveItem(listItem.id, listItem.item.name)
                             }}
-                            className="w-9 h-9 border-destructive/20 text-destructive/70 hover:bg-destructive/8 hover:text-destructive hover:border-destructive/30 transition-colors"
+                            className="w-8 h-8 border-destructive/20 text-destructive/70 hover:bg-destructive/8 hover:text-destructive hover:border-destructive/30 transition-colors"
                             aria-label={`Remove ${listItem.item.name} from list`}
                           >
                             ×
