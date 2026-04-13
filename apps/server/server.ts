@@ -735,6 +735,7 @@ const wsServer = new WebSocketServer({
 })
 
 // Save the returned server's info so we can shutdown this server later
+// biome-ignore lint/correctness/useHookAtTopLevel: useServer is from graphql-ws, not a React hook
 const serverCleanup = useServer({ schema }, wsServer)
 
 // Set up ApolloServer
