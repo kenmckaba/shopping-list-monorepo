@@ -35,8 +35,9 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isUnchecking, setIsUnchecking] = useState(false)
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false)
+  const [showUncheckAllConfirm, setShowUncheckAllConfirm] = useState(false)
   const [transitioningItems, setTransitioningItems] = useState<Set<string>>(
-    new Set(),
+    new Set()
   )
   const client = useApolloClient()
   const inputRef = useRef<HTMLInputElement>(null)
@@ -52,7 +53,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
         inputRef.current?.focus()
       }, 10)
     },
-    onError: (error) => {
+    onError: error => {
       setIsSubmitting(false)
       // Check if it's a duplicate item error
       if (
@@ -67,7 +68,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
   })
 
   const [updateListItem] = useMutation(UPDATE_LIST_ITEM, {
-    onCompleted: (data) => {
+    onCompleted: data => {
       // When an item is updated, manually reorder the cache to put it at the top of its section
       const updatedItem = data.updateListItem
 
@@ -77,19 +78,19 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
           query: GET_LIST_ITEMS,
           variables: { listId },
         },
-        (existingData) => {
+        existingData => {
           if (!existingData?.getListItems) return existingData
 
           // Remove the updated item from its current position
           const otherItems = existingData.getListItems.filter(
-            (item: ListItemType) => item.id !== updatedItem.id,
+            (item: ListItemType) => item.id !== updatedItem.id
           )
           // Add the updated item to the beginning of the list (it will be filtered/sorted in render)
           return {
             ...existingData,
             getListItems: [updatedItem, ...otherItems],
           }
-        },
+        }
       )
     },
   })
@@ -112,7 +113,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
             query: GET_LIST_ITEMS,
             variables: { listId },
           },
-          (existingData) => {
+          existingData => {
             if (!existingData?.getListItems) return existingData
 
             // Add the new item to the beginning of the list
@@ -120,7 +121,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
               ...existingData,
               getListItems: [newItem, ...existingData.getListItems],
             }
-          },
+          }
         )
       }
     },
@@ -134,7 +135,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
           'Item updated:',
           data.data.itemUpdated.item.name,
           'isCompleted:',
-          data.data.itemUpdated.isCompleted,
+          data.data.itemUpdated.isCompleted
         )
       }
     },
@@ -153,16 +154,16 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
             query: GET_LIST_ITEMS,
             variables: { listId },
           },
-          (existingData) => {
+          existingData => {
             if (!existingData?.getListItems) return existingData
 
             return {
               ...existingData,
               getListItems: existingData.getListItems.filter(
-                (item: ListItemType) => item.id !== removedItemId,
+                (item: ListItemType) => item.id !== removedItemId
               ),
             }
-          },
+          }
         )
       }
     },
@@ -174,8 +175,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
 
     // Check if item already exists in the list (client-side check for better UX)
     const existingItem = items.find(
-      (item) =>
-        item.item.name.toLowerCase() === newItemName.trim().toLowerCase(),
+      item => item.item.name.toLowerCase() === newItemName.trim().toLowerCase()
     )
 
     if (existingItem) {
@@ -202,14 +202,14 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
 
   const handleToggleComplete = async (
     itemId: string,
-    currentStatus: boolean,
+    currentStatus: boolean
   ) => {
     // If item is currently transitioning, ignore the click
     if (transitioningItems.has(itemId)) return
 
     try {
       // Add to transitioning state immediately for visual feedback
-      setTransitioningItems((prev) => new Set([...prev, itemId]))
+      setTransitioningItems(prev => new Set([...prev, itemId]))
 
       // Wait 500ms before actually updating the item
       setTimeout(async () => {
@@ -224,7 +224,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
           console.error('Error updating item:', error)
         } finally {
           // Remove from transitioning state after update completes
-          setTransitioningItems((prev) => {
+          setTransitioningItems(prev => {
             const newSet = new Set(prev)
             newSet.delete(itemId)
             return newSet
@@ -234,7 +234,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
     } catch (error) {
       console.error('Error updating item:', error)
       // Remove from transitioning state if there's an error
-      setTransitioningItems((prev) => {
+      setTransitioningItems(prev => {
         const newSet = new Set(prev)
         newSet.delete(itemId)
         return newSet
@@ -268,7 +268,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
   }
 
   const confirmDeleteCompleted = async () => {
-    const completedItems = items.filter((item) => item.isCompleted)
+    const completedItems = items.filter(item => item.isCompleted)
     if (completedItems.length === 0) return
 
     setIsDeleting(true)
@@ -277,11 +277,11 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
     try {
       // Delete all completed items
       await Promise.all(
-        completedItems.map((item) =>
+        completedItems.map(item =>
           removeItemFromList({
             variables: { id: item.id },
-          }),
-        ),
+          })
+        )
       )
     } catch (error) {
       console.error('Error deleting completed items:', error)
@@ -295,22 +295,27 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
   }
 
   const handleUncheckAll = async () => {
-    const completedItems = items.filter((item) => item.isCompleted)
+    setShowUncheckAllConfirm(true)
+  }
+
+  const confirmUncheckAll = async () => {
+    const completedItems = items.filter(item => item.isCompleted)
     if (completedItems.length === 0) return
 
     setIsUnchecking(true)
+    setShowUncheckAllConfirm(false)
 
     try {
       // Uncheck all completed items
       await Promise.all(
-        completedItems.map((item) =>
+        completedItems.map(item =>
           updateListItem({
             variables: {
               id: item.id,
               isCompleted: false,
             },
-          }),
-        ),
+          })
+        )
       )
     } catch (error) {
       console.error('Error unchecking items:', error)
@@ -319,8 +324,12 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
     }
   }
 
+  const cancelUncheckAll = () => {
+    setShowUncheckAllConfirm(false)
+  }
+
   return (
-    <div className="space-y-4 bg-secondary rounded-lg">
+    <div id="divX" className="rounded-lg mt-2">
       {/* Delete Confirmation Modal */}
       {itemToDelete && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
@@ -364,11 +373,27 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
         </div>
       )}
 
+      {/* Uncheck All Items Confirmation Modal */}
+      {showUncheckAllConfirm && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-background border shadow-xl rounded-lg p-6 max-w-sm mx-4">
+            <p className="text-foreground/70 mb-6">
+              Are you sure you want to uncheck all completed items?
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" onClick={cancelUncheckAll}>
+                Cancel
+              </Button>
+              <Button onClick={confirmUncheckAll} disabled={isUnchecking}>
+                {isUnchecking ? 'Unchecking...' : 'Uncheck All'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Add Item Form */}
-      <form
-        onSubmit={handleAddItem}
-        className="bg-card rounded-lg shadow-sm border"
-      >
+      <form onSubmit={handleAddItem} className="bg-card rounded-lg shadow-sm ">
         {/* Error Message */}
         {error && (
           <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
@@ -388,7 +413,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
               ref={inputRef}
               autoComplete="off"
               value={newItemName}
-              onChange={(e) => {
+              onChange={e => {
                 setNewItemName(e.target.value)
                 if (error) setError(null) // Clear error when user starts typing
               }}
@@ -405,7 +430,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
       </form>
 
       {/* Items List */}
-      <div id="div0" className="space-y-4">
+      <div id="div0" className="mt-2 space-y-2">
         {items.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             No items in this list yet. Add some items to get started!
@@ -414,10 +439,10 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
           <>
             {/* Unchecked Items */}
             {(() => {
-              const uncompletedItems = items.filter((item) => !item.isCompleted)
+              const uncompletedItems = items.filter(item => !item.isCompleted)
               return uncompletedItems.length > 0 ? (
                 <div id="div1" className="space-y-1">
-                  {uncompletedItems.map((listItem) => (
+                  {uncompletedItems.map(listItem => (
                     <ListItem
                       key={listItem.id}
                       listItem={listItem}
@@ -435,7 +460,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
             {/* Checked Items */}
             {(() => {
               const completedItems = items
-                .filter((item) => item.isCompleted)
+                .filter(item => item.isCompleted)
                 .sort((a, b) => {
                   // Sort by updatedAt (most recent first), fallback to addedAt if updatedAt is missing
                   const dateA = new Date(a.updatedAt || a.addedAt).getTime()
@@ -445,7 +470,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
               return completedItems.length > 0 ? (
                 <div className="space-y-1">
                   <div className="flex items-center justify-between border-t border-border pt-2">
-                    <h4 className="font-semibold text-muted-foreground">
+                    <h4 className="font-semibold text-muted-foreground ml-2">
                       Completed ({completedItems.length})
                     </h4>
                     {/* Bulk Actions */}
@@ -456,8 +481,8 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                         size="sm"
                         onClick={handleUncheckAll}
                         disabled={
-                          items.filter((item) => item.isCompleted).length ===
-                            0 || isUnchecking
+                          items.filter(item => item.isCompleted).length === 0 ||
+                          isUnchecking
                         }
                       >
                         {isUnchecking ? 'Unchecking...' : 'Uncheck All'}
@@ -468,17 +493,17 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                         size="sm"
                         onClick={handleDeleteCompleted}
                         disabled={
-                          items.filter((item) => item.isCompleted).length ===
-                            0 || isDeleting
+                          items.filter(item => item.isCompleted).length === 0 ||
+                          isDeleting
                         }
                         className="text-destructive/70 border-destructive/20 hover:bg-destructive/8 hover:text-destructive hover:border-destructive/30 transition-colors"
                       >
-                        {isDeleting ? 'Deleting...' : 'Delete all'}
+                        {isDeleting ? 'Deleting...' : 'Delete All'}
                       </Button>
                     </div>
                   </div>
 
-                  {completedItems.map((listItem) => (
+                  {completedItems.map(listItem => (
                     <ListItem
                       key={listItem.id}
                       listItem={listItem}
