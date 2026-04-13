@@ -477,7 +477,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                     <div className="flex gap-2">
                       {/* Uncheck All Button */}
                       <Button
-                        variant="outline"
+                        variant="link"
                         size="sm"
                         onClick={handleUncheckAll}
                         disabled={
@@ -489,7 +489,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                       </Button>
                       {/* Delete Completed Items Button */}
                       <Button
-                        variant="outline"
+                        variant="link"
                         size="sm"
                         onClick={handleDeleteCompleted}
                         disabled={
