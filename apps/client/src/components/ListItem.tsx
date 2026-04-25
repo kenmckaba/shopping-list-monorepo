@@ -21,10 +21,8 @@ export function ListItem({
   return (
     <div
       id="list-item"
-      className={`w-full p-2 shadow-sm transition-all duration-200 ${
-        isCompleted
-          ? 'bg-muted rounded-lg hover:bg-muted/80'
-          : 'bg-card hover:bg-accent'
+      className={`w-full p-2 shadow-sm transition-all duration-200 rounded-lg hover:bg-muted/60 bg-muted ${
+        isCompleted ? 'opacity-70' : 'opacity-100'
       }`}
     >
       <div id="inner" className="flex items-center justify-between">

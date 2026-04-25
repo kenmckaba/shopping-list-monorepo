@@ -84,7 +84,22 @@ export function SupabaseAuthProvider({ children }: AuthProviderProps) {
           .single()
 
         if (error) {
-          console.error('Error creating user profile:', error)
+          // If error is lock or duplicate, fetch the user again
+          const isLockOrDuplicate =
+            error.message?.includes('lock') ||
+            error.message?.toLowerCase().includes('duplicate')
+          if (isLockOrDuplicate) {
+            const { data: retryUser } = await supabase
+              .from('users')
+              .select('*')
+              .eq('email', supabaseUser.email)
+              .single()
+            if (retryUser) {
+              setUser(retryUser)
+            }
+          } else {
+            console.error('Error creating user profile:', error)
+          }
         } else {
           setUser(newUser)
         }
