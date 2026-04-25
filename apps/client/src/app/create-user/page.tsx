@@ -2,9 +2,8 @@
 
 import { ThemeToggle } from '@/components/theme-toggle'
 import { CREATE_USER } from '@/lib/graphql/mutations'
-import { GET_USERS } from '@/lib/graphql/queries'
-import { USER_ADDED } from '@/lib/graphql/subscriptions'
-import { useMutation, useSubscription } from '@apollo/client'
+import { GET_USERS } from '@/lib/graphql/queries-hasura'
+import { useMutation } from '@apollo/client'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -14,37 +13,42 @@ export default function CreateUserPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const [createUser] = useMutation(CREATE_USER, {
-    refetchQueries: [{ query: GET_USERS }],
     onCompleted: data => {
-      // Redirect to the user's lists page
-      router.push(`/user/${data.createUser.id}/lists`)
+      // Handle Supabase response format (fixed the original issue!)
+      const userId = data.insertIntousersCollection?.records?.[0]?.id
+      router.push(`/user/${userId}/lists`)
     },
     onError: error => {
       console.error('Error creating user:', error)
+      setError(error.message)
       setIsSubmitting(false)
     },
   })
-
-  // Subscribe to user additions for real-time updates
-  useSubscription(USER_ADDED)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim() || !email.trim()) return
 
     setIsSubmitting(true)
+    setError(null)
+
     try {
       await createUser({
         variables: {
-          name: name.trim(),
-          email: email.trim(),
+          objects: [
+            {
+              name: name.trim(),
+              email: email.trim(),
+            },
+          ],
         },
       })
     } catch (error) {
       console.error('Submission error:', error)
-      setIsSubmitting(false)
+      // Error handling is done in onError callback
     }
   }
 
@@ -72,6 +76,12 @@ export default function CreateUserPage() {
 
           <div className="bg-card rounded-lg shadow-md border border-border p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
+              {error && (
+                <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
+                  {error}
+                </div>
+              )}
+
               <div>
                 <label
                   htmlFor="name"

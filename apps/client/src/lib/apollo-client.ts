@@ -5,6 +5,7 @@ import {
   split,
 } from '@apollo/client'
 import { loadDevMessages, loadErrorMessages } from '@apollo/client/dev'
+import { setContext } from '@apollo/client/link/context'
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions'
 import { getMainDefinition } from '@apollo/client/utilities'
 import { createClient } from 'graphql-ws'
@@ -15,86 +16,114 @@ if (process.env.NODE_ENV === 'development') {
   loadErrorMessages()
 }
 
-// Dynamic GraphQL endpoint based on current host
-const getGraphQLUrl = () => {
-  if (typeof window === 'undefined') {
-    // Server-side: use localhost
+// GraphQL endpoint URLs - supports both local and Supabase
+function getGraphQLUrl() {
+  // Use local server in development mode
+  if (process.env.NEXT_PUBLIC_USE_LOCAL_SERVER === 'true') {
     return (
       process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql'
     )
   }
 
-  // Client-side: use current host but port 4000
-  const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:'
-  const host = window.location.hostname
-  return `${protocol}//${host}:4000/graphql`
+  // Use Supabase for production
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!supabaseUrl) {
+    throw new Error('NEXT_PUBLIC_SUPABASE_URL environment variable is required')
+  }
+  return `${supabaseUrl}/graphql/v1`
 }
 
-const getWebSocketUrl = () => {
-  if (typeof window === 'undefined') {
+function getWSUrl() {
+  // Use local server in development mode
+  if (process.env.NEXT_PUBLIC_USE_LOCAL_SERVER === 'true') {
     return process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:4000/graphql'
   }
 
-  // Client-side: use current host but port 4000
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  const host = window.location.hostname
-  return `${protocol}//${host}:4000/graphql`
+  // Use Supabase for production
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!supabaseUrl) {
+    throw new Error('NEXT_PUBLIC_SUPABASE_URL environment variable is required')
+  }
+  return `${supabaseUrl.replace('https://', 'wss://')}/graphql/v1`
 }
 
+// Create HTTP link for queries and mutations
 const httpLink = createHttpLink({
   uri: getGraphQLUrl(),
-  // Add timeout and better error handling for mobile network connectivity
   fetchOptions: {
-    timeout: 10000, // 10 second timeout
-  },
-  fetch: (uri, options) => {
-    // Add a timeout wrapper for better mobile network handling
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 10000)
-
-    return fetch(uri, {
-      ...options,
-      signal: controller.signal,
-    }).finally(() => clearTimeout(timeoutId))
+    timeout: 10000, // 10 second timeout for mobile networks
   },
 })
 
+// Create WebSocket link for subscriptions
 const wsLink =
   typeof window !== 'undefined'
     ? new GraphQLWsLink(
         createClient({
-          url: getWebSocketUrl(),
-          connectionParams: {
-            // Add connection timeout
-          },
-          retryAttempts: 3,
-          shouldRetry: () => true,
-          connectionAckWaitTimeout: 5000, // 5 second timeout for connection ack
-          // Add error handling for WebSocket connections
-          on: {
-            error: error => {
-              console.warn('WebSocket connection error:', error)
-            },
-            closed: () => {
-              console.warn('WebSocket connection closed')
-            },
+          url: getWSUrl(),
+          connectionParams: () => {
+            const token = localStorage.getItem('authToken')
+
+            // Local server - minimal auth
+            if (process.env.NEXT_PUBLIC_USE_LOCAL_SERVER === 'true') {
+              return {
+                ...(token && { Authorization: `Bearer ${token}` }),
+              }
+            }
+
+            // Supabase - requires API key
+            const apiKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+            return {
+              headers: {
+                apikey: apiKey,
+                ...(token && { Authorization: `Bearer ${token}` }),
+              },
+            }
           },
         })
       )
     : null
 
-// Use split link to route queries/mutations to HTTP and subscriptions to WebSocket
-const splitLink = split(
-  ({ query }) => {
-    const definition = getMainDefinition(query)
-    return (
-      definition.kind === 'OperationDefinition' &&
-      definition.operation === 'subscription'
+// Create auth link
+const authLink = setContext((_, { headers }) => {
+  const token = localStorage.getItem('authToken')
+
+  // Local server - minimal auth
+  if (process.env.NEXT_PUBLIC_USE_LOCAL_SERVER === 'true') {
+    return {
+      headers: {
+        ...headers,
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    }
+  }
+
+  // Supabase - requires API key
+  const apiKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  return {
+    headers: {
+      ...headers,
+      apikey: apiKey,
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  }
+})
+
+// Split link: send subscriptions to WebSocket, queries/mutations to HTTP
+const splitLink = wsLink
+  ? split(
+      ({ query }) => {
+        const definition = getMainDefinition(query)
+        return (
+          definition.kind === 'OperationDefinition' &&
+          definition.operation === 'subscription'
+        )
+      },
+      wsLink,
+      authLink.concat(httpLink)
     )
-  },
-  wsLink || httpLink, // Fallback to HTTP link if WebSocket not available (SSR)
-  httpLink
-)
+  : authLink.concat(httpLink)
 
 export const apolloClient = new ApolloClient({
   link: splitLink,
@@ -102,24 +131,16 @@ export const apolloClient = new ApolloClient({
     typePolicies: {
       Query: {
         fields: {
-          getListItems: {
-            merge: false, // Always replace cached data, don't merge
+          usersCollection: {
+            merge: false, // Replace instead of merge for Supabase
           },
-        },
-      },
-      User: {
-        fields: {
-          ownedLists: {
+          shopping_listsCollection: {
             merge: false,
           },
-          sharedLists: {
+          list_itemsCollection: {
             merge: false,
           },
-        },
-      },
-      ShoppingList: {
-        fields: {
-          items: {
+          itemsCollection: {
             merge: false,
           },
         },
@@ -128,8 +149,8 @@ export const apolloClient = new ApolloClient({
   }),
   defaultOptions: {
     watchQuery: {
-      errorPolicy: 'ignore',
-      fetchPolicy: 'cache-and-network', // Better for mobile connectivity
+      errorPolicy: 'all',
+      fetchPolicy: 'cache-and-network', // Better for real-time apps
       notifyOnNetworkStatusChange: true,
     },
     query: {

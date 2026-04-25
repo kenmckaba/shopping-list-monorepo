@@ -3,36 +3,10 @@
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { useAuth } from '@/contexts/AuthContext'
-import { GET_USER_ACCESSIBLE_LISTS } from '@/lib/graphql/queries'
-import {
-  LIST_ADDED,
-  LIST_DELETED,
-  LIST_UPDATED,
-} from '@/lib/graphql/subscriptions'
-import { useQuery, useSubscription } from '@apollo/client'
+import { useRealtimeUserLists } from '@/hooks/useRealtimeUserLists'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect } from 'react'
-
-interface ShoppingList {
-  id: string
-  title: string
-  description?: string
-  isPublic: boolean
-  createdAt: string
-  owner: {
-    id: string
-    name: string
-  }
-  items: Array<{
-    id: string
-    quantity: number
-    isCompleted: boolean
-    item: {
-      name: string
-    }
-  }>
-}
 
 export default function UserListsPage() {
   const params = useParams()
@@ -40,106 +14,8 @@ export default function UserListsPage() {
   const userId = params.id as string
   const { user, logout, isLoading: authLoading } = useAuth()
 
-  // All hooks must be called before conditional logic
-  const { loading, error, data } = useQuery<{
-    getUserAccessibleLists: ShoppingList[]
-  }>(GET_USER_ACCESSIBLE_LISTS, {
-    variables: { userId },
-    skip: !userId, // Skip query if no userId
-  })
-
-  // Subscribe to real-time list updates
-  useSubscription(LIST_ADDED, {
-    onData: ({ data, client }) => {
-      // Manually update cache to add the new list
-      if (data.data?.listAdded) {
-        const newList = data.data.listAdded
-        console.log('List added:', newList)
-
-        // Update the GET_USER_ACCESSIBLE_LISTS query cache
-        client.cache.updateQuery(
-          {
-            query: GET_USER_ACCESSIBLE_LISTS,
-            variables: { userId },
-          },
-          existingData => {
-            if (!existingData?.getUserAccessibleLists) return existingData
-
-            // Add the new list to the beginning of the lists
-            return {
-              ...existingData,
-              getUserAccessibleLists: [
-                newList,
-                ...existingData.getUserAccessibleLists,
-              ],
-            }
-          }
-        )
-      }
-    },
-  })
-
-  useSubscription(LIST_UPDATED, {
-    onData: ({ data, client }) => {
-      // Manually update cache to modify the existing list
-      if (data.data?.listUpdated) {
-        const updatedList = data.data.listUpdated
-        console.log('List updated:', updatedList)
-
-        // Update the GET_USER_ACCESSIBLE_LISTS query cache
-        client.cache.updateQuery(
-          {
-            query: GET_USER_ACCESSIBLE_LISTS,
-            variables: { userId },
-          },
-          existingData => {
-            if (!existingData?.getUserAccessibleLists) return existingData
-
-            // Replace the updated list in the lists array
-            return {
-              ...existingData,
-              getUserAccessibleLists: existingData.getUserAccessibleLists.map(
-                (list: ShoppingList) =>
-                  list.id === updatedList.id
-                    ? { ...list, ...updatedList }
-                    : list
-              ),
-            }
-          }
-        )
-      }
-    },
-  })
-
-  useSubscription(LIST_DELETED, {
-    onData: ({ data, client }) => {
-      // Manually update cache to remove the deleted list
-      if (data.data?.listDeleted) {
-        const deletedListId = data.data.listDeleted
-        console.log('List deleted:', deletedListId)
-
-        // Update the GET_USER_ACCESSIBLE_LISTS query cache
-        client.cache.updateQuery(
-          {
-            query: GET_USER_ACCESSIBLE_LISTS,
-            variables: { userId },
-          },
-          existingData => {
-            if (!existingData?.getUserAccessibleLists) return existingData
-
-            // Remove the deleted list from the lists array
-            return {
-              ...existingData,
-              getUserAccessibleLists:
-                existingData.getUserAccessibleLists.filter(
-                  (list: ShoppingList) => list.id !== deletedListId
-                ),
-            }
-          }
-        )
-      }
-    },
-  })
+  // Use real-time hook for user lists with WebSocket-like updates
+  const { lists, loading, error } = useRealtimeUserLists(userId)
 
   // Use useEffect for redirects to avoid issues with navigation
   useEffect(() => {
@@ -162,17 +38,13 @@ export default function UserListsPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-destructive mb-2">Error</h1>
-          <p className="text-muted-foreground">
-            Failed to load lists: {error.message}
-          </p>
+          <p className="text-muted-foreground">Failed to load lists: {error}</p>
           <Link href="/" className="btn btn-primary mt-4 inline-block">
             Go Back Home
           </Link>
         </div>
       </div>
     )
-
-  const lists = data?.getUserAccessibleLists
 
   return (
     <ProtectedRoute>
@@ -226,10 +98,8 @@ export default function UserListsPage() {
                   </Link>
                 </div>
 
-                {lists?.map(list => {
-                  const totalItems = list.items.length
-
-                  return (
+                {lists?.map(
+                  (list: { id: string; title: string; created_at: string }) => (
                     <div
                       key={list.id}
                       className="bg-card rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
@@ -239,42 +109,25 @@ export default function UserListsPage() {
                           <h3 className="text-xl font-semibold text-foreground mb-1">
                             {list.title}
                           </h3>
-                          {list.description && (
-                            <p className="text-muted-foreground text-sm mb-2">
-                              {list.description}
-                            </p>
-                          )}
                           <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                             <span>
-                              {totalItems} item{totalItems !== 1 ? 's' : ''}
+                              Created{' '}
+                              {new Date(list.created_at).toLocaleDateString()}
                             </span>
-                            <span>•</span>
-                            <span
-                              className={
-                                list.isPublic
-                                  ? 'text-primary'
-                                  : 'text-muted-foreground'
-                              }
-                            >
-                              {list.isPublic ? 'Public' : 'Private'}
-                            </span>
-                            <span>•</span>
-                            <span>by {list.owner.name}</span>
                           </div>
                         </div>
-                      </div>
-
-                      <div className="flex justify-end">
-                        <Link
-                          href={`/list/${list.id}`}
-                          className="btn btn-primary"
-                        >
-                          View List
-                        </Link>
+                        <div className="flex justify-end">
+                          <Link
+                            href={`/list/${list.id}`}
+                            className="btn btn-primary"
+                          >
+                            View List
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   )
-                })}
+                )}
               </div>
             )}
           </div>

@@ -4,8 +4,6 @@ import { ApolloServer } from '@apollo/server'
 import { expressMiddleware } from '@apollo/server/express4'
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer'
 import { makeExecutableSchema } from '@graphql-tools/schema'
-// import { createClient } from "@libsql/client";
-import { PrismaLibSql } from '@prisma/adapter-libsql'
 import { PrismaClient } from '@prisma/client'
 import cors from 'cors'
 import 'dotenv/config'
@@ -14,20 +12,11 @@ import { gql } from 'graphql-tag'
 import { useServer } from 'graphql-ws/lib/use/ws'
 import { WebSocketServer } from 'ws'
 
-// Initialize Prisma Client with libSQL adapter
+// Initialize Prisma Client for local SQLite database
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL environment variable is required')
 }
-const adapter = new PrismaLibSql({
-  url: process.env.DATABASE_URL,
-})
-const prisma = new PrismaClient({ adapter })
-
-interface User {
-  id: string
-  name: string
-  email: string
-}
+const prisma = new PrismaClient()
 
 // Interfaces removed - using Prisma generated types instead
 
@@ -830,6 +819,8 @@ app.use(
       'Content-Type',
       'Authorization',
       'Apollo-Require-Preflight',
+      'apikey', // Allow Supabase/legacy headers
+      'X-User-Token', // Custom user token header
     ],
     exposedHeaders: ['Content-Length', 'ETag'],
   }),

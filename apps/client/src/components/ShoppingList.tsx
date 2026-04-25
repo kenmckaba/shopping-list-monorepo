@@ -4,29 +4,14 @@ import { ListItem } from '@/components/ListItem'
 import type { ListItemType } from '@/components/shopping-list-type'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  ADD_ITEM_TO_LIST,
-  REMOVE_ITEM_FROM_LIST,
-  UPDATE_LIST_ITEM,
-} from '@/lib/graphql/mutations'
-import { GET_LIST_ITEMS } from '@/lib/graphql/queries'
-import {
-  ITEM_ADDED_TO_LIST,
-  ITEM_REMOVED,
-  ITEM_UPDATED,
-} from '@/lib/graphql/subscriptions'
-import { useApolloClient, useMutation, useSubscription } from '@apollo/client'
+import { useAuth } from '@/contexts/AuthContext'
+import { useRealtimeListItems } from '@/hooks/useRealtimeListItems'
 import { useRef, useState } from 'react'
 
-interface ShoppingListProps {
-  listId: string
-  items: ListItemType[]
-}
-
-export function ShoppingList({ listId, items }: ShoppingListProps) {
+export function ShoppingList({ listId }: { listId: string }) {
+  const { user } = useAuth()
   const [newItemName, setNewItemName] = useState('')
   const [newItemQuantity, setNewItemQuantity] = useState(1)
-  const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [itemToDelete, setItemToDelete] = useState<{
     id: string
@@ -39,135 +24,36 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
   const [transitioningItems, setTransitioningItems] = useState<Set<string>>(
     new Set()
   )
-  const client = useApolloClient()
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const [addItemToList] = useMutation(ADD_ITEM_TO_LIST, {
-    onCompleted: () => {
-      setNewItemName('')
-      setNewItemQuantity(1)
-      setError(null)
-      setIsSubmitting(false)
-      // Focus the input field after a brief delay to ensure DOM is ready
-      setTimeout(() => {
-        inputRef.current?.focus()
-      }, 10)
+  // Use real-time hook for list items with WebSocket-like updates
+  const {
+    items: realtimeItems,
+    error: realtimeError,
+    addItem,
+    toggleComplete,
+    deleteItem,
+  } = useRealtimeListItems(listId, user?.id)
+
+  // Convert to component format
+  const items: ListItemType[] = realtimeItems.map(item => ({
+    id: item.id,
+    name: item.item.name,
+    quantity: item.quantity,
+    isCompleted: item.isCompleted, // Use camelCase field name
+    notes: item.notes || null,
+    addedAt: item.createdAt, // Use camelCase field name
+    updatedAt: item.updatedAt, // Use camelCase field name
+    createdAt: item.createdAt, // Use camelCase field name
+    shopping_list_id: listId, // We know this from context
+    item: {
+      id: item.item.id,
+      name: item.item.name,
+      category: item.item.category || null,
     },
-    onError: error => {
-      setIsSubmitting(false)
-      // Check if it's a duplicate item error
-      if (
-        error.message?.includes('Unique constraint failed') ||
-        error.message?.includes('already exists')
-      ) {
-        setError(`"${newItemName}" is already in this list`)
-      } else {
-        setError('Failed to add item. Please try again.')
-      }
-    },
-  })
+  }))
 
-  const [updateListItem] = useMutation(UPDATE_LIST_ITEM, {
-    onCompleted: data => {
-      // When an item is updated, manually reorder the cache to put it at the top of its section
-      const updatedItem = data.updateListItem
-
-      // Update the cache directly
-      client.cache.updateQuery(
-        {
-          query: GET_LIST_ITEMS,
-          variables: { listId },
-        },
-        existingData => {
-          if (!existingData?.getListItems) return existingData
-
-          // Remove the updated item from its current position
-          const otherItems = existingData.getListItems.filter(
-            (item: ListItemType) => item.id !== updatedItem.id
-          )
-          // Add the updated item to the beginning of the list (it will be filtered/sorted in render)
-          return {
-            ...existingData,
-            getListItems: [updatedItem, ...otherItems],
-          }
-        }
-      )
-    },
-  })
-
-  const [removeItemFromList] = useMutation(REMOVE_ITEM_FROM_LIST, {
-    // Removed onCompleted callback - subscriptions will handle the update
-  })
-
-  // Subscribe to real-time updates - don't trigger refetch as subscriptions automatically update cache
-  useSubscription(ITEM_ADDED_TO_LIST, {
-    onData: ({ data, client }) => {
-      // Manually update cache to add the new item
-      if (data.data?.itemAddedToList) {
-        const newItem = data.data.itemAddedToList
-        console.log('Item added:', newItem)
-
-        // Update the GET_LIST_ITEMS query cache
-        client.cache.updateQuery(
-          {
-            query: GET_LIST_ITEMS,
-            variables: { listId },
-          },
-          existingData => {
-            if (!existingData?.getListItems) return existingData
-
-            // Add the new item to the beginning of the list
-            return {
-              ...existingData,
-              getListItems: [newItem, ...existingData.getListItems],
-            }
-          }
-        )
-      }
-    },
-  })
-
-  useSubscription(ITEM_UPDATED, {
-    onData: ({ data }) => {
-      // Just log for debugging - mutation onCompleted handles cache updates
-      if (data.data?.itemUpdated) {
-        console.log(
-          'Item updated:',
-          data.data.itemUpdated.item.name,
-          'isCompleted:',
-          data.data.itemUpdated.isCompleted
-        )
-      }
-    },
-  })
-
-  useSubscription(ITEM_REMOVED, {
-    onData: ({ data, client }) => {
-      // Manually update cache to remove the deleted item
-      if (data.data?.itemRemoved) {
-        const removedItemId = data.data.itemRemoved
-        console.log('Item removed:', removedItemId)
-
-        // Update the GET_LIST_ITEMS query cache
-        client.cache.updateQuery(
-          {
-            query: GET_LIST_ITEMS,
-            variables: { listId },
-          },
-          existingData => {
-            if (!existingData?.getListItems) return existingData
-
-            return {
-              ...existingData,
-              getListItems: existingData.getListItems.filter(
-                (item: ListItemType) => item.id !== removedItemId
-              ),
-            }
-          }
-        )
-      }
-    },
-  })
+  const error = realtimeError
 
   const handleAddItem = async (e: { preventDefault: () => void }) => {
     e.preventDefault()
@@ -175,28 +61,27 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
 
     // Check if item already exists in the list (client-side check for better UX)
     const existingItem = items.find(
-      item => item.item.name.toLowerCase() === newItemName.trim().toLowerCase()
+      item => item.name.toLowerCase() === newItemName.trim().toLowerCase()
     )
 
     if (existingItem) {
-      setError(`"${newItemName.trim()}" is already in this list`)
-      return
+      return // Item already exists, skip silently or show message
     }
 
-    setError(null)
     setIsSubmitting(true)
 
     try {
-      await addItemToList({
-        variables: {
-          listId,
-          itemName: newItemName.trim(),
-          quantity: newItemQuantity,
-        },
-      })
-    } catch (error) {
-      console.error('Error adding item:', error)
-      // Error is handled in the mutation's onError callback
+      await addItem(newItemName.trim(), newItemQuantity)
+      setNewItemName('')
+      setNewItemQuantity(1)
+      // Focus the input field after a brief delay
+      setTimeout(() => {
+        inputRef.current?.focus()
+      }, 10)
+    } catch (err) {
+      console.error('Error adding item:', err)
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -211,26 +96,19 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
       // Add to transitioning state immediately for visual feedback
       setTransitioningItems(prev => new Set([...prev, itemId]))
 
-      // Wait 500ms before actually updating the item
-      setTimeout(async () => {
-        try {
-          await updateListItem({
-            variables: {
-              id: itemId,
-              isCompleted: !currentStatus,
-            },
-          })
-        } catch (error) {
-          console.error('Error updating item:', error)
-        } finally {
-          // Remove from transitioning state after update completes
-          setTransitioningItems(prev => {
-            const newSet = new Set(prev)
-            newSet.delete(itemId)
-            return newSet
-          })
-        }
-      }, 500)
+      await new Promise(resolve => setTimeout(resolve, 500))
+      try {
+        await toggleComplete(itemId, currentStatus)
+      } catch (error) {
+        console.error('Error updating item:', error)
+      } finally {
+        // Remove from transitioning state after update completes
+        setTransitioningItems(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(itemId)
+          return newSet
+        })
+      }
     } catch (error) {
       console.error('Error updating item:', error)
       // Remove from transitioning state if there's an error
@@ -250,9 +128,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
     if (!itemToDelete) return
 
     try {
-      await removeItemFromList({
-        variables: { id: itemToDelete.id },
-      })
+      await deleteItem(itemToDelete.id)
       setItemToDelete(null)
     } catch (error) {
       console.error('Error removing item:', error)
@@ -276,13 +152,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
 
     try {
       // Delete all completed items
-      await Promise.all(
-        completedItems.map(item =>
-          removeItemFromList({
-            variables: { id: item.id },
-          })
-        )
-      )
+      await Promise.all(completedItems.map(item => deleteItem(item.id)))
     } catch (error) {
       console.error('Error deleting completed items:', error)
     } finally {
@@ -308,14 +178,7 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
     try {
       // Uncheck all completed items
       await Promise.all(
-        completedItems.map(item =>
-          updateListItem({
-            variables: {
-              id: item.id,
-              isCompleted: false,
-            },
-          })
-        )
+        completedItems.map(item => toggleComplete(item.id, true))
       )
     } catch (error) {
       console.error('Error unchecking items:', error)
@@ -415,10 +278,8 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
               value={newItemName}
               onChange={e => {
                 setNewItemName(e.target.value)
-                if (error) setError(null) // Clear error when user starts typing
               }}
               placeholder="Add an item"
-              className={error ? 'border-destructive' : ''}
               required
               disabled={isSubmitting}
             />
@@ -463,8 +324,8 @@ export function ShoppingList({ listId, items }: ShoppingListProps) {
                 .filter(item => item.isCompleted)
                 .sort((a, b) => {
                   // Sort by updatedAt (most recent first), fallback to addedAt if updatedAt is missing
-                  const dateA = new Date(a.updatedAt || a.addedAt).getTime()
-                  const dateB = new Date(b.updatedAt || b.addedAt).getTime()
+                  const dateA = new Date(a.updatedAt || a.createdAt).getTime()
+                  const dateB = new Date(b.updatedAt || b.createdAt).getTime()
                   return dateB - dateA
                 })
               return completedItems.length > 0 ? (

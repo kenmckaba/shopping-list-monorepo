@@ -1,13 +1,9 @@
 export interface ListItemType {
   id: string
+  name: string
   quantity: number
   isCompleted: boolean
-  notes?: string
-  addedAt: string
+  shopping_list_id: string
+  createdAt: string
   updatedAt?: string
-  item: {
-    id: string
-    name: string
-    category?: string
-  }
 }

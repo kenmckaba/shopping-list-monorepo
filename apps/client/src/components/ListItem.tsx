@@ -20,13 +20,14 @@ export function ListItem({
 }: ListItemProps) {
   return (
     <div
+      id="list-item"
       className={`w-full p-2 shadow-sm transition-all duration-200 ${
         isCompleted
           ? 'bg-muted rounded-lg hover:bg-muted/80'
           : 'bg-card hover:bg-accent'
       }`}
     >
-      <div className="flex items-center justify-between">
+      <div id="inner" className="flex items-center justify-between">
         <label
           htmlFor={`${idPrefix}-${listItem.id}`}
           className="flex items-center space-x-2 flex-1 cursor-pointer"
@@ -49,13 +50,8 @@ export function ListItem({
             <p
               className={`font-medium ${isCompleted ? '' : 'text-foreground'}`}
             >
-              {listItem.item.name}
+              {listItem.name}
             </p>
-            {listItem.item.category && (
-              <p className="text-sm text-muted-foreground">
-                {listItem.item.category}
-              </p>
-            )}
           </div>
         </label>
         <div className="flex items-center space-x-2">
@@ -63,10 +59,10 @@ export function ListItem({
             variant="outline"
             size="icon"
             onClick={() => {
-              onRemoveItem(listItem.id, listItem.item.name)
+              onRemoveItem(listItem.id, listItem.name)
             }}
             className={`${isCompleted ? 'w-8 h-8' : 'w-9 h-9'} border-destructive/20 text-destructive/70 hover:bg-destructive/8 hover:text-destructive hover:border-destructive/30 transition-colors`}
-            aria-label={`Remove ${listItem.item.name} from list`}
+            aria-label={`Remove ${listItem.name} from list`}
           >
             ×
           </Button>

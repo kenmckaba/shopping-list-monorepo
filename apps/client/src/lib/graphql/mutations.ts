@@ -17,6 +17,7 @@ export const UPDATE_USER = gql`
       id
       name
       email
+      lastOpenedListId
     }
   }
 `
@@ -35,11 +36,26 @@ export const CREATE_LIST = gql`
       description
       isPublic
       createdAt
-      owner {
-        id
-        name
-      }
+      updatedAt
     }
+  }
+`
+
+export const UPDATE_LIST = gql`
+  mutation UpdateList($id: ID!, $title: String, $description: String, $isPublic: Boolean) {
+    updateList(id: $id, title: $title, description: $description, isPublic: $isPublic) {
+      id
+      title
+      description
+      isPublic
+      updatedAt
+    }
+  }
+`
+
+export const DELETE_LIST = gql`
+  mutation DeleteList($id: ID!) {
+    deleteList(id: $id)
   }
 `
 
@@ -49,97 +65,100 @@ export const CREATE_ITEM = gql`
       id
       name
       category
-      createdBy {
-        id
-        name
-      }
       createdAt
     }
   }
 `
 
-export const ADD_ITEM_TO_LIST = gql`
-  mutation AddItemToList($listId: ID!, $itemName: String!, $quantity: Int, $notes: String) {
-    addItemToList(listId: $listId, itemName: $itemName, quantity: $quantity, notes: $notes) {
-      id
-      quantity
-      isCompleted
-      notes
-      addedAt
-      updatedAt
-      item {
+export const UPDATE_ITEM = gql`
+  mutation UpdateItem($id: UUID!, $set: itemsUpdateInput!) {
+    updateitemsCollection(set: $set, filter: {id: {eq: $id}}, atMost: 1) {
+      records {
         id
         name
         category
-        createdBy {
-          id
-          name
-        }
+        updated_at
       }
-      list {
+    }
+  }
+`
+
+export const DELETE_ITEM = gql`
+  mutation DeleteItem($id: UUID!) {
+    deleteFromitemsCollection(filter: {id: {eq: $id}}, atMost: 1) {
+      affectedCount
+    }
+  }
+`
+
+export const ADD_ITEM_TO_LIST = gql`
+  mutation AddItemToList($objects: [list_itemsInsertInput!]!) {
+    insertIntolist_itemsCollection(objects: $objects) {
+      records {
         id
-        title
-        owner {
-          id
-          name
-        }
+        quantity
+        is_completed
+        notes
+        list_id
+        item_id
+        added_at
+        updated_at
       }
     }
   }
 `
 
 export const UPDATE_LIST_ITEM = gql`
-  mutation UpdateListItem($id: ID!, $quantity: Int, $isCompleted: Boolean, $notes: String) {
-    updateListItem(id: $id, quantity: $quantity, isCompleted: $isCompleted, notes: $notes) {
-      id
-      quantity
-      isCompleted
-      notes
-      addedAt
-      updatedAt
-      item {
+  mutation UpdateListItem($id: UUID!, $set: list_itemsUpdateInput!) {
+    updatelist_itemsCollection(set: $set, filter: {id: {eq: $id}}, atMost: 1) {
+      records {
         id
-        name
-        category
-        createdBy {
-          id
-          name
-        }
-      }
-      list {
-        id
-        title
-        owner {
-          id
-          name
-        }
+        quantity
+        is_completed
+        notes
+        updated_at
       }
     }
   }
 `
 
 export const REMOVE_ITEM_FROM_LIST = gql`
-  mutation RemoveItemFromList($id: ID!) {
-    removeItemFromList(id: $id)
-  }
-`
-
-export const LOGIN_USER = gql`
-  mutation LoginUser($email: String!) {
-    loginUser(email: $email) {
-      id
-      name
-      email
-      createdAt
+  mutation RemoveItemFromList($id: UUID!) {
+    deleteFromlist_itemsCollection(filter: {id: {eq: $id}}, atMost: 1) {
+      affectedCount
     }
   }
 `
 
-export const UPDATE_LAST_OPENED_LIST = gql`
-  mutation UpdateLastOpenedList($userId: ID!, $listId: ID!) {
-    updateLastOpenedList(userId: $userId, listId: $listId) {
-      id
-      lastOpenedListId
+export const CREATE_LIST_SHARE = gql`
+  mutation CreateListShare($objects: [list_sharesInsertInput!]!) {
+    insertIntolist_sharesCollection(objects: $objects) {
+      records {
+        id
+        permission
+        list_id
+        user_id
+        shared_at
+      }
+    }
+  }
+`
+
+export const UPDATE_LIST_SHARE = gql`
+  mutation UpdateListShare($id: UUID!, $set: list_sharesUpdateInput!) {
+    updatelist_sharesCollection(set: $set, filter: {id: {eq: $id}}, atMost: 1) {
+      records {
+        id
+        permission
+      }
+    }
+  }
+`
+
+export const DELETE_LIST_SHARE = gql`
+  mutation DeleteListShare($id: UUID!) {
+    deleteFromlist_sharesCollection(filter: {id: {eq: $id}}, atMost: 1) {
+      affectedCount
     }
   }
 `

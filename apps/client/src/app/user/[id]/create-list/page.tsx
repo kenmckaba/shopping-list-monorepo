@@ -4,8 +4,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { useAuth } from '@/contexts/AuthContext'
 import { CREATE_LIST } from '@/lib/graphql/mutations'
 import { GET_USER_ACCESSIBLE_LISTS } from '@/lib/graphql/queries'
-import { LIST_ADDED } from '@/lib/graphql/subscriptions'
-import { useMutation, useSubscription } from '@apollo/client'
+import { useMutation } from '@apollo/client'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import React, { useState } from 'react'
@@ -17,26 +16,19 @@ export default function CreateListPage() {
   const { user } = useAuth()
 
   const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [isPublic, setIsPublic] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // All hooks must be called before any conditional logic
   const [createList] = useMutation(CREATE_LIST, {
-    refetchQueries: [
-      { query: GET_USER_ACCESSIBLE_LISTS, variables: { userId } },
-    ],
     onCompleted: data => {
-      router.push(`/list/${data.createList.id}`)
+      const listId = data.createList?.id
+      router.push(`/list/${listId}`)
     },
     onError: error => {
       console.error('Error creating list:', error)
       setIsSubmitting(false)
     },
   })
-
-  // Subscribe to list additions for real-time updates
-  useSubscription(LIST_ADDED)
 
   // Redirect if trying to access another user's create page (after all hooks)
   if (user && user.id !== userId) {
@@ -53,9 +45,9 @@ export default function CreateListPage() {
       await createList({
         variables: {
           title: title.trim(),
-          description: description.trim() || undefined,
-          isPublic,
-          ownerId: userId, // Pass the userId as ownerId
+          description: null,
+          isPublic: false,
+          ownerId: userId,
         },
       })
     } catch (error) {
@@ -98,53 +90,6 @@ export default function CreateListPage() {
                   required
                   disabled={isSubmitting}
                 />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="description"
-                  className="block text-sm font-medium text-foreground mb-2"
-                >
-                  Description (optional)
-                </label>
-                <textarea
-                  id="description"
-                  name="description"
-                  autoComplete="off"
-                  rows={3}
-                  value={description}
-                  onChange={e => setDescription(e.target.value)}
-                  placeholder="Brief description of this shopping list..."
-                  className="input"
-                  disabled={isSubmitting}
-                />
-              </div>
-
-              <div>
-                <div className="flex items-start">
-                  <div className="flex items-center h-5">
-                    <input
-                      id="isPublic"
-                      name="isPublic"
-                      type="checkbox"
-                      checked={isPublic}
-                      onChange={e => setIsPublic(e.target.checked)}
-                      className="h-4 w-4 text-primary focus:ring-ring border-input rounded"
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                  <div className="ml-3 text-sm">
-                    <label
-                      htmlFor="isPublic"
-                      className="font-medium text-foreground"
-                    >
-                      Make this list public
-                    </label>
-                    <p className="text-muted-foreground">
-                      Public lists can be discovered and viewed by others
-                    </p>
-                  </div>
-                </div>
               </div>
 
               <div className="flex space-x-4">

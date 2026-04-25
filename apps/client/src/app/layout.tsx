@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { ThemeProvider } from '@/components/theme-provider'
+import { AuthProvider } from '@/contexts/AuthContext'
 import { ApolloWrapper } from '@/lib/apollo-wrapper'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -46,7 +47,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ErrorBoundary>
-            <ApolloWrapper>{children}</ApolloWrapper>
+            <AuthProvider>
+              <ApolloWrapper>{children}</ApolloWrapper>
+            </AuthProvider>
           </ErrorBoundary>
         </ThemeProvider>
       </body>
