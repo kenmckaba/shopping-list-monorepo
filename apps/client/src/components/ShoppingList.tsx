@@ -4,11 +4,13 @@ import { ListItem } from '@/components/ListItem'
 import type { ListItemType } from '@/components/shopping-list-type'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useToast } from '@/components/ui/toast-context'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRealtimeListItems } from '@/hooks/useRealtimeListItems'
 import { useRef, useState } from 'react'
 
 export function ShoppingList({ listId }: { listId: string }) {
+  const { showToast } = useToast()
   // Debug: log loading, items, error on every render
   console.log('[ShoppingList] Rendered with listId:', listId)
 
@@ -82,7 +84,8 @@ export function ShoppingList({ listId }: { listId: string }) {
     )
 
     if (existingItem) {
-      return // Item already exists, skip silently or show message
+      showToast('Item already exists in the list', 2000)
+      return
     }
 
     setIsSubmitting(true)

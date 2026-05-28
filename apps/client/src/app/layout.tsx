@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { ThemeProvider } from '@/components/theme-provider'
+import { ToastProvider } from '@/components/ui/toast-context'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { ApolloWrapper } from '@/lib/apollo-wrapper'
 
@@ -47,9 +48,11 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ErrorBoundary>
-            <AuthProvider>
-              <ApolloWrapper>{children}</ApolloWrapper>
-            </AuthProvider>
+            <ToastProvider>
+              <AuthProvider>
+                <ApolloWrapper>{children}</ApolloWrapper>
+              </AuthProvider>
+            </ToastProvider>
           </ErrorBoundary>
         </ThemeProvider>
       </body>
