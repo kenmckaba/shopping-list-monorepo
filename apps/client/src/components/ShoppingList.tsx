@@ -9,6 +9,12 @@ import { useRealtimeListItems } from '@/hooks/useRealtimeListItems'
 import { useRef, useState } from 'react'
 
 export function ShoppingList({ listId }: { listId: string }) {
+  // Debug: log loading, items, error on every render
+  console.log('[ShoppingList] Rendered with listId:', listId)
+
+  // Use real-time hook for list items with WebSocket-like updates
+  // (hook call is below, but we want to log after items are derived)
+
   const { user } = useAuth()
   const [newItemName, setNewItemName] = useState('')
   const [newItemQuantity, setNewItemQuantity] = useState(1)
@@ -29,6 +35,7 @@ export function ShoppingList({ listId }: { listId: string }) {
   // Use real-time hook for list items with WebSocket-like updates
   const {
     items: realtimeItems,
+    loading,
     error: realtimeError,
     addItem,
     toggleComplete,
@@ -54,6 +61,16 @@ export function ShoppingList({ listId }: { listId: string }) {
   }))
 
   const error = realtimeError
+
+  // Debug log for state
+  console.log(
+    '[ShoppingList] loading:',
+    loading,
+    'items.length:',
+    items.length,
+    'error:',
+    error
+  )
 
   const handleAddItem = async (e: { preventDefault: () => void }) => {
     e.preventDefault()
@@ -190,6 +207,26 @@ export function ShoppingList({ listId }: { listId: string }) {
   const cancelUncheckAll = () => {
     setShowUncheckAllConfirm(false)
   }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="bg-destructive/10 border border-destructive/20 rounded-md p-6 max-w-sm mx-4">
+          <p className="text-destructive text-lg font-semibold mb-2">Error</p>
+          <p className="text-destructive text-sm">{error}</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary" />
+      </div>
+    )
+  }
+  // ...existing code continues to render the shopping list UI...
 
   return (
     <div id="divX" className="rounded-lg mt-2">

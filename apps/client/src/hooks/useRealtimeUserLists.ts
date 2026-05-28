@@ -1,7 +1,10 @@
 'use client'
 
 import { createClient } from '@supabase/supabase-js'
-import { useEffect, useState } from 'react'
+// @ts-ignore: Import type only if available
+// eslint-disable-next-line import/named
+import type { SupabaseChannel } from '@supabase/supabase-js'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -21,29 +24,38 @@ export function useRealtimeUserLists(userId: string) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Use refs to ensure stable references for fetch and channel
+  // Use the correct type for the channel ref
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+
+  const fetchLists = useCallback(async () => {
+    if (!userId) return
+    console.log('[UserLists] fetchLists called, userId:', userId)
+    setLoading(true)
+    setError(null)
+    try {
+      const { data, error } = await supabase
+        .from('shopping_lists')
+        .select('*')
+        .eq('owner_id', userId)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      setLists(data || [])
+      console.log('[UserLists] fetchLists success, count:', data?.length)
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to fetch lists'
+      setError(errorMessage)
+      console.error('[UserLists] fetchLists error:', errorMessage)
+    } finally {
+      setLoading(false)
+      console.log('[UserLists] fetchLists finished, loading set to false')
+    }
+  }, [userId])
+
   useEffect(() => {
     if (!userId) return
-
-    // Initial fetch
-    async function fetchLists() {
-      try {
-        const { data, error } = await supabase
-          .from('shopping_lists')
-          .select('*')
-          .eq('owner_id', userId)
-          .order('created_at', { ascending: false })
-
-        if (error) throw error
-        setLists(data || [])
-      } catch (err: unknown) {
-        const errorMessage =
-          err instanceof Error ? err.message : 'Failed to fetch lists'
-        setError(errorMessage)
-      } finally {
-        setLoading(false)
-      }
-    }
-
     fetchLists()
 
     // Set up real-time subscription
@@ -74,11 +86,33 @@ export function useRealtimeUserLists(userId: string) {
         }
       )
       .subscribe()
+    channelRef.current = channel
 
     return () => {
-      supabase.removeChannel(channel)
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current)
+        channelRef.current = null
+      }
     }
-  }, [userId])
+  }, [userId, fetchLists])
+
+  // Refetch lists and reset loading when tab becomes visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      console.log(
+        '[UserLists] visibilitychange event:',
+        document.visibilityState
+      )
+      if (document.visibilityState === 'visible') {
+        console.log('[UserLists] Tab became visible, refetching lists...')
+        fetchLists()
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [fetchLists])
 
   // Create new list
   const createList = async (title: string, description?: string) => {

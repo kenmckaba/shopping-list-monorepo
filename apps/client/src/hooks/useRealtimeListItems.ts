@@ -35,6 +35,7 @@ export function useRealtimeListItems(listId: string, userId?: string) {
 
     // Initial fetch with item details
     async function fetchItems() {
+      console.log('[ListItems] fetchItems called, listId:', listId)
       try {
         setLoading(true)
         setError(null)
@@ -58,7 +59,10 @@ export function useRealtimeListItems(listId: string, userId?: string) {
           throw listItemsError
         }
 
-        console.log('Successfully fetched items:', listItemsData?.length || 0)
+        console.log(
+          '[ListItems] fetchItems success, count:',
+          listItemsData?.length
+        )
         // Transform database fields (snake_case) to interface fields (camelCase)
         setItems(
           listItemsData?.map(item => ({
@@ -77,6 +81,7 @@ export function useRealtimeListItems(listId: string, userId?: string) {
             },
           })) || []
         )
+        console.log('[ListItems] fetchItems finished, loading set to false')
       } catch (err: unknown) {
         console.error('Full error object:', err)
         const errorMessage =
@@ -167,8 +172,24 @@ export function useRealtimeListItems(listId: string, userId?: string) {
         console.log('📡 Subscription status:', status)
       })
 
+    // Add tab visibility handler
+    const handleVisibilityChange = () => {
+      console.log(
+        '[ListItems] visibilitychange event:',
+        document.visibilityState
+      )
+      if (document.visibilityState === 'visible') {
+        console.log('[ListItems] Tab became visible, refetching items...')
+        setLoading(true)
+        setError(null)
+        fetchItems()
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
     return () => {
       supabase.removeChannel(channel)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [listId])
 

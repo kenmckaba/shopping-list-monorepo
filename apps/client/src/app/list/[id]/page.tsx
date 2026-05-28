@@ -10,6 +10,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
 export default function ListPage() {
+  console.log('[ListPage] Rendered')
   const params = useParams()
   const router = useRouter()
   const listId = params.id as string
