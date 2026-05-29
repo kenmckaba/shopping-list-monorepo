@@ -1,6 +1,6 @@
 'use client'
 
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 import type React from 'react'
 import {
@@ -13,10 +13,7 @@ import {
 } from 'react'
 import { LocalAuthProvider, useLocalAuth } from './LocalAuthContext'
 
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const supabase = createClient(supabaseUrl, supabaseKey)
+// Use the singleton supabase client from lib/supabase
 
 interface User {
   id: string
