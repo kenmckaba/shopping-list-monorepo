@@ -15,22 +15,26 @@ export function ProtectedRoute({
   requireAuth = true,
   redirectTo = '/',
 }: ProtectedRouteProps) {
-  const { user, isLoading } = useAuth()
+  const { user, supabaseUser, isLoading } = useAuth()
   const router = useRouter()
+  const authenticatedUser = user || supabaseUser
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: router changes reference on render, causes infinite loops
   useEffect(() => {
     if (!isLoading) {
-      if (requireAuth && !user) {
+      if (requireAuth && !authenticatedUser) {
         router.push(redirectTo)
-      } else if (!requireAuth && user) {
+      } else if (!requireAuth && authenticatedUser) {
         // If user is logged in and trying to access a non-auth page (like login)
-        router.push(`/user/${user.id}/lists`)
+        router.push(`/user/${authenticatedUser.id}/lists`)
       }
     }
-  }, [user, isLoading, requireAuth, redirectTo]) // Remove router from dependencies
+  }, [authenticatedUser, isLoading, requireAuth, redirectTo]) // Remove router from dependencies
 
-  if (isLoading) {
+  // Only block with spinner on initial load when we don't yet know the auth state.
+  // If the user is already known, render children immediately and let auth events
+  // update state in the background (avoids spinner on tab switch / token refresh).
+  if (isLoading && !authenticatedUser) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary" />
@@ -38,11 +42,11 @@ export function ProtectedRoute({
     )
   }
 
-  if (requireAuth && !user) {
+  if (requireAuth && !authenticatedUser) {
     return null // Will redirect via useEffect
   }
 
-  if (!requireAuth && user) {
+  if (!requireAuth && authenticatedUser) {
     return null // Will redirect via useEffect
   }
 

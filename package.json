@@ -1,7 +1,7 @@
 {
   "name": "shopping-list-monorepo",
   "version": "1.0.0",
-  "description": "A full-stack shopping list application with Next.js frontend and GraphQL backend",
+  "description": "A Supabase-powered shopping list application with Next.js frontend",
   "private": true,
   "workspaces": [
     "apps/*"
@@ -10,19 +10,16 @@
     "get-intrinsic": "1.1.3"
   },
   "scripts": {
-    "dev": "concurrently \"yarn workspace shopping-list-client run dev\" \"yarn workspace shopping-list-server run dev\"",
+    "dev": "yarn workspace shopping-list-client run dev",
     "dev:client": "yarn workspace shopping-list-client run dev",
-    "dev:server": "yarn workspace shopping-list-server run dev",
-    "build": "yarn workspace shopping-list-client run build && yarn workspace shopping-list-server run build",
+    "build": "yarn workspace shopping-list-client run build",
     "build:client": "yarn workspace shopping-list-client run build",
-    "build:server": "yarn workspace shopping-list-server run build",
-    "lint": "yarn workspace shopping-list-client run lint && yarn workspace shopping-list-server run lint",
-    "lint:fix": "yarn workspace shopping-list-client run lint:fix && yarn workspace shopping-list-server run lint:fix",
-    "format": "yarn workspace shopping-list-client run format && yarn workspace shopping-list-server run format",
+    "lint": "yarn workspace shopping-list-client run lint",
+    "lint:fix": "yarn workspace shopping-list-client run lint:fix",
+    "format": "yarn workspace shopping-list-client run format",
     "clean": "rimraf apps/*/node_modules apps/*/.next apps/*/dist && rimraf node_modules"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2",
     "cross-env": "^10.1.0",
     "rimraf": "^5.0.5"
   },
@@ -30,18 +27,13 @@
     "monorepo",
     "shopping-list",
     "nextjs",
-    "graphql",
     "react",
-    "prisma",
-    "apollo"
+    "supabase"
   ],
   "author": "kenmckaba",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/kenmckaba/shopping-list-monorepo.git"
-  },
-  "dependencies": {
-    "@prisma/client": "^7.5.0"
   }
 }

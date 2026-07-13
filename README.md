@@ -1,6 +1,6 @@
 # Shopping List Monorepo
 
-A full-stack shopping list application built with Next.js, GraphQL, and Prisma.
+A shopping list application built with Next.js and Supabase.
 
 ## 📁 Project Structure
 
@@ -8,7 +8,6 @@ A full-stack shopping list application built with Next.js, GraphQL, and Prisma.
 shopping-list-monorepo/
 ├── apps/
 │   ├── client/          # Next.js React frontend
-│   └── server/          # GraphQL API server with Prisma
 ├── package.json         # Root workspace configuration
 └── README.md
 ```
@@ -34,32 +33,26 @@ npm install
 
 3. **Start development servers:**
 ```bash
-npm run dev  # Starts both client and server
+npm run dev
 ```
 
-Or start individually:
+Or run the client directly:
 ```bash
 npm run dev:client  # Frontend only (port 3000)
-npm run dev:server  # Backend only (port 4000)
 ```
 
 ## 📱 Applications
 
 ### Client (Frontend)
-- **Tech Stack:** Next.js 16, React 19, TypeScript, Tailwind CSS, Apollo Client
+- **Tech Stack:** Next.js 16, React 19, TypeScript, Tailwind CSS, Supabase JS
 - **Port:** 3000 (accessible via network: `http://YOUR_IP:3000`)
-- **Features:** PWA-ready, phone-optimized shopping lists
-
-### Server (Backend)
-- **Tech Stack:** GraphQL, Apollo Server, Prisma, SQLite, TypeScript
-- **Port:** 4000
-- **Features:** Real-time subscriptions, user management, list sharing
+- **Features:** PWA-ready, phone-optimized shopping lists, Supabase auth, realtime updates
 
 ## 🛠️ Available Scripts
 
 ### Root Level
-- `npm run dev` - Start both apps in development
-- `npm run build` - Build both apps for production
+- `npm run dev` - Start frontend in development
+- `npm run build` - Build frontend for production
 - `npm run lint` - Lint all code
 - `npm run lint:fix` - Auto-fix linting issues
 - `npm run format` - Format all code with Biome
@@ -67,23 +60,20 @@ npm run dev:server  # Backend only (port 4000)
 
 ### Individual Apps
 - `npm run dev:client` - Start frontend only
-- `npm run dev:server` - Start backend only
 - `npm run build:client` - Build frontend
-- `npm run build:server` - Build backend
 
 ## 🌐 Network Access
 
 The application is configured for network access:
 - Frontend: `http://YOUR_IP:3000` (accessible from phones/tablets)
-- Backend: `http://YOUR_IP:4000/graphql`
 
 ## 🗄️ Database
 
-The server uses Prisma with SQLite for data persistence. The database includes:
+Supabase provides auth, PostgreSQL storage, and realtime updates. The database includes:
 - Users and authentication
 - Shopping lists with items
 - List sharing capabilities
-- Real-time updates via GraphQL subscriptions
+- Real-time updates via Supabase Realtime
 
 ## 🎨 Code Quality
 

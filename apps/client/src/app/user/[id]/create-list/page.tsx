@@ -2,9 +2,7 @@
 
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { useAuth } from '@/contexts/AuthContext'
-import { CREATE_LIST } from '@/lib/graphql/mutations'
-import { GET_USER_ACCESSIBLE_LISTS } from '@/lib/graphql/queries'
-import { useMutation } from '@apollo/client'
+import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import React, { useState } from 'react'
@@ -15,42 +13,38 @@ export default function CreateListPage() {
   const userId = params.id as string
   const { user } = useAuth()
 
+  const ownerId = user?.id || userId
+
   const [title, setTitle] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // All hooks must be called before any conditional logic
-  const [createList] = useMutation(CREATE_LIST, {
-    onCompleted: data => {
-      const listId = data.createList?.id
-      router.push(`/list/${listId}`)
-    },
-    onError: error => {
-      console.error('Error creating list:', error)
-      setIsSubmitting(false)
-    },
-  })
-
-  // Redirect if trying to access another user's create page (after all hooks)
-  if (user && user.id !== userId) {
-    router.push(`/user/${user.id}/create-list`)
-    return null
-  }
-
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault()
-    if (!title.trim()) return
+    const trimmedTitle = title.trim()
+    if (!trimmedTitle) return
 
     setIsSubmitting(true)
+
     try {
-      await createList({
-        variables: {
-          title: title.trim(),
-          description: null,
-          isPublic: false,
-          ownerId: userId,
-        },
-      })
-    } catch (error) {
+      const { data, error } = await supabase
+        .from('shopping_lists')
+        .insert({
+          title: trimmedTitle,
+          owner_id: ownerId,
+        })
+        .select('id')
+        .single()
+
+      if (error) {
+        throw error
+      }
+
+      if (!data?.id) {
+        throw new Error('Create list completed but list ID was missing')
+      }
+
+      router.push(`/list/${data.id}`)
+    } catch (error: unknown) {
       console.error('Submission error:', error)
       setIsSubmitting(false)
     }
@@ -94,7 +88,7 @@ export default function CreateListPage() {
 
               <div className="flex space-x-4">
                 <Link
-                  href={`/user/${userId}/lists`}
+                  href={`/user/${ownerId}/lists`}
                   className="flex-1 btn btn-secondary text-center"
                 >
                   Cancel

@@ -5,14 +5,13 @@ import { ThemeToggle } from '@/components/theme-toggle'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRealtimeUserLists } from '@/hooks/useRealtimeUserLists'
 import Link from 'next/link'
-import { useParams, useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useParams } from 'next/navigation'
 
 export default function UserListsPage() {
   const params = useParams()
-  const router = useRouter()
   const userId = params.id as string
-  const { user, logout, isLoading: authLoading } = useAuth()
+  const { user, logout } = useAuth()
+  const effectiveUserId = user?.id || userId
 
   // Use real-time hook for user lists with WebSocket-like updates
   const { lists, loading, error } = useRealtimeUserLists(userId)
@@ -26,35 +25,15 @@ export default function UserListsPage() {
     error
   )
 
-  // Use useEffect for redirects to avoid issues with navigation
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/')
-    } else if (user && user.id !== userId) {
-      router.push(`/user/${user.id}/lists`)
-    }
-  }, [user, userId, router, authLoading])
-
   // Visible debug element for loading state
   // Remove this after debugging
   const debugLoading = (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        zIndex: 9999,
-        background: '#fff',
-        color: '#000',
-        padding: 4,
-        border: '1px solid #000',
-      }}
-    >
+    <div className="fixed left-0 top-0 z-[9999] border border-black bg-white px-1 text-black">
       [DEBUG] loading: {loading ? 'true' : 'false'}
     </div>
   )
 
-  if (loading)
+  if (loading && lists.length === 0)
     return (
       <>
         {debugLoading}
@@ -91,10 +70,10 @@ export default function UserListsPage() {
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h1 className="text-3xl font-bold text-foreground">
-                  My Shopping Lists
+                  All Shopping Lists
                 </h1>
                 <p className="text-muted-foreground mt-1">
-                  Welcome back, {user?.name}!
+                  Browse and collaborate on every shared list.
                 </p>
               </div>
               <div className="flex items-center space-x-4">
@@ -119,7 +98,7 @@ export default function UserListsPage() {
                     Create your first shopping list to get started!
                   </p>
                   <Link
-                    href={`/user/${userId}/create-list`}
+                    href={`/user/${effectiveUserId}/create-list`}
                     className="btn btn-primary"
                   >
                     Create New List
@@ -129,7 +108,7 @@ export default function UserListsPage() {
                 <div className="space-y-4">
                   <div className="flex justify-end mb-4">
                     <Link
-                      href={`/user/${userId}/create-list`}
+                      href={`/user/${effectiveUserId}/create-list`}
                       className="btn btn-primary"
                     >
                       Create New List

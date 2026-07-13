@@ -29,9 +29,6 @@ export function ShoppingList({ listId }: { listId: string }) {
   const [isUnchecking, setIsUnchecking] = useState(false)
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false)
   const [showUncheckAllConfirm, setShowUncheckAllConfirm] = useState(false)
-  const [transitioningItems, setTransitioningItems] = useState<Set<string>>(
-    new Set()
-  )
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Use real-time hook for list items with WebSocket-like updates
@@ -109,34 +106,10 @@ export function ShoppingList({ listId }: { listId: string }) {
     itemId: string,
     currentStatus: boolean
   ) => {
-    // If item is currently transitioning, ignore the click
-    if (transitioningItems.has(itemId)) return
-
     try {
-      // Add to transitioning state immediately for visual feedback
-      setTransitioningItems(prev => new Set([...prev, itemId]))
-
-      await new Promise(resolve => setTimeout(resolve, 500))
-      try {
-        await toggleComplete(itemId, currentStatus)
-      } catch (error) {
-        console.error('Error updating item:', error)
-      } finally {
-        // Remove from transitioning state after update completes
-        setTransitioningItems(prev => {
-          const newSet = new Set(prev)
-          newSet.delete(itemId)
-          return newSet
-        })
-      }
+      await toggleComplete(itemId, currentStatus)
     } catch (error) {
       console.error('Error updating item:', error)
-      // Remove from transitioning state if there's an error
-      setTransitioningItems(prev => {
-        const newSet = new Set(prev)
-        newSet.delete(itemId)
-        return newSet
-      })
     }
   }
 
@@ -349,7 +322,6 @@ export function ShoppingList({ listId }: { listId: string }) {
                       listItem={listItem}
                       isCompleted={false}
                       idPrefix="uncompleted-item"
-                      transitioningItems={transitioningItems}
                       onToggleComplete={handleToggleComplete}
                       onRemoveItem={handleRemoveItem}
                     />
@@ -410,7 +382,6 @@ export function ShoppingList({ listId }: { listId: string }) {
                       listItem={listItem}
                       isCompleted={true}
                       idPrefix="completed-item"
-                      transitioningItems={transitioningItems}
                       onToggleComplete={handleToggleComplete}
                       onRemoveItem={handleRemoveItem}
                     />

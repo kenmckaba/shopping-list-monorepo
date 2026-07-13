@@ -5,7 +5,7 @@ A modern Progressive Web App for managing shopping lists with real-time collabor
 ## Features
 
 - 📱 **Mobile-First PWA**: Works on all devices, installable on mobile and desktop
-- 🔄 **Real-Time Updates**: Live updates using GraphQL subscriptions
+- 🔄 **Real-Time Updates**: Live updates using Supabase Realtime
 - 👥 **Collaborative**: Share lists with others for group shopping
 - ⚡ **Fast Performance**: Optimized with Next.js and Tailwind CSS
 - 🎨 **Modern UI**: Clean, responsive design with touch-friendly interactions
@@ -17,19 +17,24 @@ A modern Progressive Web App for managing shopping lists with real-time collabor
 - **Next.js 14** - React framework with App Router
 - **TypeScript** - Type safety and better developer experience
 - **Tailwind CSS** - Utility-first CSS framework
-- **Apollo Client** - GraphQL client with caching and subscriptions
+- **Supabase JS** - Auth, database, and realtime client
 - **PWA** - Progressive Web App capabilities
 
-### Backend (Existing)
-- **Node.js** with **GraphQL** server
-- **Prisma** ORM with **SQLite** database
-- **WebSocket** support for real-time subscriptions
+### Backend Services
+- **Supabase Auth** for sign in/sign up
+- **Supabase Postgres** for persistent data
+- **Supabase Realtime** for live list/item updates
 
 ## Getting Started
 
 ### Prerequisites
 
-Make sure your GraphQL server is running on `http://localhost:4000/graphql`
+Set these environment variables in `.env.local`:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=your-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+```
 
 ### Installation
 
@@ -45,14 +50,6 @@ npm run dev
 
 3. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-### Environment Variables
-
-Create a `.env.local` file with:
-```
-NEXT_PUBLIC_GRAPHQL_URL=http://localhost:4000/graphql
-NEXT_PUBLIC_WS_URL=ws://localhost:4000/graphql
-```
-
 ## Project Structure
 
 ```
@@ -67,12 +64,7 @@ src/
 ├── components/             # Reusable React components
 │   └── ShoppingList.tsx    # Main shopping list component
 └── lib/                    # Utilities and configuration
-    ├── apollo-client.ts    # Apollo Client configuration
-    ├── apollo-wrapper.tsx  # Apollo Provider wrapper
-    └── graphql/           # GraphQL operations
-        ├── queries.ts      # GraphQL queries
-        ├── mutations.ts    # GraphQL mutations
-        └── subscriptions.ts # GraphQL subscriptions
+    └── supabase.ts         # Supabase client configuration
 ```
 
 ## Scripts
@@ -80,7 +72,7 @@ src/
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run start` - Start production server
-- `npm run lint` - Run ESLint
+- `npm run lint` - Run Biome checks
 
 ## PWA Features
 
@@ -89,14 +81,6 @@ src/
 - **Touch Optimized**: Large tap targets and swipe gestures
 - **Offline Support**: Basic offline functionality (coming soon)
 - **Real-Time**: Live updates when lists change
-
-## GraphQL Integration
-
-The app connects to your existing GraphQL server and supports:
-
-- **Queries**: Fetch users, lists, and items
-- **Mutations**: Create, update, and delete operations
-- **Subscriptions**: Real-time updates for collaborative features
 
 ## Contributing
 

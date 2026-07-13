@@ -11,7 +11,6 @@ import {
   useMemo,
   useState,
 } from 'react'
-import { LocalAuthProvider, useLocalAuth } from './LocalAuthContext'
 
 // Use the singleton supabase client from lib/supabase
 
@@ -48,10 +47,55 @@ interface AuthProviderProps {
   children: React.ReactNode
 }
 
+const INITIAL_SESSION_TIMEOUT_MS = 12000
+const AUTH_PROFILE_SYNC_TIMEOUT_MS = 10000
+
+async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  timeoutMessage: string
+): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(timeoutMessage))
+    }, timeoutMs)
+  })
+
+  try {
+    return (await Promise.race([promise, timeoutPromise])) as T
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+    }
+  }
+}
+
 export function SupabaseAuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+
+  const isTransientNetworkAuthError = useCallback((message?: string) => {
+    const text = (message || '').toLowerCase()
+    return (
+      text.includes('failed to fetch') ||
+      text.includes('networkerror') ||
+      text.includes('network request failed') ||
+      text.includes('cors request did not succeed')
+    )
+  }, [])
+
+  const isInitialSessionTimeoutError = useCallback((message?: string) => {
+    const text = (message || '').toLowerCase()
+    return text.includes('initial auth session check timeout')
+  }, [])
+
+  const isAuthProfileSyncTimeoutError = useCallback((message?: string) => {
+    const text = (message || '').toLowerCase()
+    return text.includes('auth profile sync timeout')
+  }, [])
 
   // Fetch or create user profile in our users table
   const syncUserProfile = useCallback(async (supabaseUser: SupabaseUser) => {
@@ -295,40 +339,133 @@ export function SupabaseAuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     let mounted = true
 
+    const hydrateSessionFromResult = async (
+      session: Awaited<
+        ReturnType<typeof supabase.auth.getSession>
+      >['data']['session']
+    ) => {
+      if (!mounted || !session?.user) {
+        return
+      }
+      setSupabaseUser(session.user)
+      await syncUserProfile(session.user)
+    }
+
+    const retryInitialSessionCheck = async () => {
+      try {
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession()
+
+        if (!mounted || error) {
+          return
+        }
+
+        await hydrateSessionFromResult(session)
+      } catch {
+        // Ignore retry errors and rely on auth state listener updates.
+      }
+    }
+
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return
 
-      setIsLoading(true)
+      // Don't show loading spinner for silent token refreshes
+      const isSignificantEvent =
+        event === 'SIGNED_IN' ||
+        event === 'SIGNED_OUT' ||
+        event === 'USER_UPDATED'
+
+      if (isSignificantEvent) {
+        setIsLoading(true)
+      }
 
       if (session?.user) {
         setSupabaseUser(session.user)
-        await syncUserProfile(session.user)
-      } else {
+        try {
+          await withTimeout(
+            syncUserProfile(session.user),
+            AUTH_PROFILE_SYNC_TIMEOUT_MS,
+            'Auth profile sync timeout'
+          )
+        } catch (error: unknown) {
+          const message = error instanceof Error ? error.message : ''
+          if (
+            isTransientNetworkAuthError(message) ||
+            isAuthProfileSyncTimeoutError(message)
+          ) {
+            console.warn(
+              'Auth profile sync is taking longer than expected; retrying in background.'
+            )
+            void syncUserProfile(session.user)
+          } else {
+            console.error('Auth state sync failed:', error)
+          }
+        }
+      } else if (event === 'SIGNED_OUT') {
         setUser(null)
         setSupabaseUser(null)
       }
 
-      setIsLoading(false)
+      if (isSignificantEvent) {
+        setIsLoading(false)
+      }
     })
 
     // Initial session check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mounted) return
+    withTimeout(
+      supabase.auth.getSession(),
+      INITIAL_SESSION_TIMEOUT_MS,
+      'Initial auth session check timeout'
+    )
+      .then(({ data: { session }, error }) => {
+        if (!mounted) return
 
-      if (session?.user) {
-        setSupabaseUser(session.user)
-        syncUserProfile(session.user)
-      }
-      setIsLoading(false)
-    })
+        if (error) {
+          if (isTransientNetworkAuthError(error.message)) {
+            console.warn(
+              'Transient auth refresh/network issue detected during session check; continuing silently.'
+            )
+          } else {
+            console.error('Initial session check failed:', error)
+          }
+          setIsLoading(false)
+          return
+        }
+
+        void hydrateSessionFromResult(session)
+        setIsLoading(false)
+      })
+      .catch((error: unknown) => {
+        if (!mounted) return
+        const message = error instanceof Error ? error.message : ''
+        if (
+          isTransientNetworkAuthError(message) ||
+          isInitialSessionTimeoutError(message)
+        ) {
+          console.warn(
+            'Auth session check was delayed by startup/network conditions; continuing and retrying in background.'
+          )
+          void retryInitialSessionCheck()
+        } else {
+          console.error('Initial session check failed:', error)
+        }
+        setIsLoading(false)
+      })
 
     return () => {
       mounted = false
       subscription.unsubscribe()
     }
-  }, [syncUserProfile])
+  }, [
+    isAuthProfileSyncTimeoutError,
+    isInitialSessionTimeoutError,
+    isTransientNetworkAuthError,
+    syncUserProfile,
+  ])
 
   const value = useMemo(
     () => ({
@@ -360,21 +497,7 @@ export function SupabaseAuthProvider({ children }: AuthProviderProps) {
 
 // Smart wrapper that chooses between local and Supabase auth
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  // Check environment variable - ensure it's properly loaded
-  const useLocalServer = process.env.NEXT_PUBLIC_USE_LOCAL_SERVER === 'true'
-
-  console.log(
-    'AuthProvider - NEXT_PUBLIC_USE_LOCAL_SERVER:',
-    process.env.NEXT_PUBLIC_USE_LOCAL_SERVER
-  )
-  console.log('AuthProvider - useLocalServer:', useLocalServer)
-
-  // Use local auth only when explicitly set to true
-  if (useLocalServer) {
-    return <LocalAuthProvider>{children}</LocalAuthProvider>
-  }
-
-  // Default to Supabase auth
+  // Supabase-only auth path.
   return <SupabaseAuthProvider>{children}</SupabaseAuthProvider>
 }
 

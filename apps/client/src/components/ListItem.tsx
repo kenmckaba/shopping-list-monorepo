@@ -1,11 +1,11 @@
 import type { ListItemType } from '@/components/shopping-list-type'
 import { Button } from '@/components/ui/button'
+import { useEffect, useRef, useState } from 'react'
 
 interface ListItemProps {
   listItem: ListItemType
   isCompleted: boolean
   idPrefix?: string
-  transitioningItems: Set<string>
   onToggleComplete: (itemId: string, currentStatus: boolean) => void
   onRemoveItem: (itemId: string, itemName: string) => void
 }
@@ -14,10 +14,46 @@ export function ListItem({
   listItem,
   isCompleted,
   idPrefix = 'item',
-  transitioningItems,
   onToggleComplete,
   onRemoveItem,
 }: ListItemProps) {
+  const [optimisticChecked, setOptimisticChecked] = useState(false)
+  const toggleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (toggleTimeoutRef.current) {
+        clearTimeout(toggleTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (listItem.isCompleted) {
+      setOptimisticChecked(false)
+    }
+  }, [listItem.isCompleted])
+
+  const effectiveChecked = listItem.isCompleted || optimisticChecked
+
+  const handleToggle = () => {
+    if (listItem.isCompleted) {
+      onToggleComplete(listItem.id, listItem.isCompleted)
+      return
+    }
+
+    setOptimisticChecked(true)
+
+    if (toggleTimeoutRef.current) {
+      clearTimeout(toggleTimeoutRef.current)
+    }
+
+    toggleTimeoutRef.current = setTimeout(() => {
+      onToggleComplete(listItem.id, listItem.isCompleted)
+      toggleTimeoutRef.current = null
+    }, 500)
+  }
+
   return (
     <div
       id="list-item"
@@ -34,19 +70,13 @@ export function ListItem({
             type="checkbox"
             id={`${idPrefix}-${listItem.id}`}
             name="itemCompleted"
-            checked={
-              isCompleted
-                ? listItem.isCompleted && !transitioningItems.has(listItem.id)
-                : listItem.isCompleted || transitioningItems.has(listItem.id)
-            }
-            onChange={() => onToggleComplete(listItem.id, listItem.isCompleted)}
+            checked={effectiveChecked}
+            onChange={handleToggle}
             className="w-5 h-5 text-primary-600 rounded focus:ring-primary-500"
           />
-          <div
-            className={`ml-1 ${isCompleted ? 'line-through text-muted-foreground' : ''}`}
-          >
+          <div className="ml-1">
             <p
-              className={`font-medium ${isCompleted ? '' : 'text-foreground'}`}
+              className={`font-medium ${effectiveChecked ? 'line-through text-muted-foreground' : 'text-foreground'}`}
             >
               {listItem.name}
             </p>

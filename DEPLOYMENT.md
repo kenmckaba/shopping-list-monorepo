@@ -3,8 +3,7 @@
 ## Prerequisites Completed ✅
 - ✅ Supabase project active: `mjhdypqdirkhoaumjkyw.supabase.co`
 - ✅ API keys already configured in `.env.local`
-- ✅ Apollo Client updated for Supabase GraphQL
-- ✅ All queries/mutations updated to Supabase format
+- ✅ Client data layer uses Supabase directly
 - ✅ Authentication updated to Supabase Auth
 
 ## Step 1: Set Up Supabase Database Schema
@@ -74,7 +73,7 @@ Click **"Deploy"** - Your app will be live at `https://your-app.vercel.app`
 ## Step 6: Test Production App
 
 ✅ **Authentication**: Sign up/in with email
-✅ **Create Lists**: Add new shopping lists  
+✅ **Create Lists**: Add new shopping lists
 ✅ **Add Items**: Add items to lists
 ✅ **Real-time Updates**: Check/uncheck items
 ✅ **Persistence**: Data saved in Supabase PostgreSQL
@@ -84,13 +83,13 @@ Click **"Deploy"** - Your app will be live at `https://your-app.vercel.app`
 ### **Cost Breakdown:**
 - **Supabase**: FREE (up to 50MB database, 50,000 monthly active users)
 - **Vercel**: FREE (unlimited deployments, 100GB bandwidth/month)
-- **Total Monthly Cost**: **$0** for personal use! 
+- **Total Monthly Cost**: **$0** for personal use!
 
 ### **What You Get:**
 - ✅ **Global CDN** via Vercel
-- ✅ **Automatic HTTPS** 
+- ✅ **Automatic HTTPS**
 - ✅ **PostgreSQL Database** with backups
-- ✅ **Built-in Authentication** 
+- ✅ **Built-in Authentication**
 - ✅ **Real-time subscriptions**
 - ✅ **Automatic scaling**
 
@@ -102,7 +101,7 @@ Click **"Deploy"** - Your app will be live at `https://your-app.vercel.app`
 
 ### **Troubleshooting:**
 - If login fails: Check CORS settings in Supabase
-- If GraphQL errors: Verify schema was created correctly
+- If table errors appear: Verify `supabase-setup.sql` was run successfully
 - If build fails: Check environment variables in Vercel
 
 ---

@@ -19,51 +19,55 @@ export function useRealtimeUserLists(userId: string) {
   const [lists, setLists] = useState<ShoppingList[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const initialLoadDone = useRef(false)
 
   // Use refs to ensure stable references for fetch and channel
   // Use the correct type for the channel ref
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
 
-  const fetchLists = useCallback(async () => {
-    if (!userId) return
-    console.log('[UserLists] fetchLists called, userId:', userId)
-    setLoading(true)
-    setError(null)
-    try {
-      const { data, error } = await supabase
-        .from('shopping_lists')
-        .select('*')
-        .eq('owner_id', userId)
-        .order('created_at', { ascending: false })
+  const fetchLists = useCallback(
+    async (showLoadingSpinner = true) => {
+      console.log(
+        '[UserLists] fetchLists called, requested by userId:',
+        userId || 'any user'
+      )
+      if (showLoadingSpinner) setLoading(true)
+      setError(null)
+      try {
+        const { data, error } = await supabase
+          .from('shopping_lists')
+          .select('*')
+          .order('created_at', { ascending: false })
 
-      if (error) throw error
-      setLists(data || [])
-      console.log('[UserLists] fetchLists success, count:', data?.length)
-    } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : 'Failed to fetch lists'
-      setError(errorMessage)
-      console.error('[UserLists] fetchLists error:', errorMessage)
-    } finally {
-      setLoading(false)
-      console.log('[UserLists] fetchLists finished, loading set to false')
-    }
-  }, [userId])
+        if (error) throw error
+        setLists(data || [])
+        console.log('[UserLists] fetchLists success, count:', data?.length)
+      } catch (err: unknown) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Failed to fetch lists'
+        setError(errorMessage)
+        console.error('[UserLists] fetchLists error:', errorMessage)
+      } finally {
+        setLoading(false)
+        initialLoadDone.current = true
+        console.log('[UserLists] fetchLists finished, loading set to false')
+      }
+    },
+    [userId]
+  )
 
   useEffect(() => {
-    if (!userId) return
     fetchLists()
 
     // Set up real-time subscription
     const channel = supabase
-      .channel(`user_lists_${userId}`)
+      .channel('shopping_lists_global')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'shopping_lists',
-          filter: `owner_id=eq.${userId}`,
         },
         payload => {
           if (payload.eventType === 'INSERT') {
@@ -90,7 +94,7 @@ export function useRealtimeUserLists(userId: string) {
         channelRef.current = null
       }
     }
-  }, [userId, fetchLists])
+  }, [fetchLists])
 
   // Refetch lists and reset loading when tab becomes visible
   useEffect(() => {
@@ -101,7 +105,7 @@ export function useRealtimeUserLists(userId: string) {
       )
       if (document.visibilityState === 'visible') {
         console.log('[UserLists] Tab became visible, refetching lists...')
-        fetchLists()
+        fetchLists(false)
       }
     }
     document.addEventListener('visibilitychange', handleVisibilityChange)

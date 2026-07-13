@@ -3,6 +3,13 @@
 import { supabase } from '@/lib/supabase'
 import { useEffect, useState } from 'react'
 
+const isDev = process.env.NODE_ENV === 'development'
+const debugLog = (...args: unknown[]) => {
+  if (isDev) {
+    console.log(...args)
+  }
+}
+
 export interface ListItem {
   id: string
   name: string
@@ -21,6 +28,41 @@ export interface ListItem {
   }
 }
 
+interface FetchItemsParams {
+  silent: boolean
+  suppressError: boolean
+}
+
+const STALE_REFETCH_THRESHOLD_MS = 30000
+
+function mapDbItemToListItem(item: {
+  id: string
+  name: string
+  quantity: number
+  is_completed: boolean
+  notes: string | null
+  shopping_list_id: string
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}): ListItem {
+  return {
+    id: item.id,
+    name: item.name,
+    quantity: item.quantity,
+    isCompleted: item.is_completed,
+    notes: item.notes || undefined,
+    shoppingListId: item.shopping_list_id,
+    createdBy: item.created_by,
+    createdAt: item.created_at,
+    updatedAt: item.updated_at,
+    item: {
+      id: item.id,
+      name: item.name,
+    },
+  }
+}
+
 export function useRealtimeListItems(listId: string, userId?: string) {
   const [items, setItems] = useState<ListItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -29,19 +71,22 @@ export function useRealtimeListItems(listId: string, userId?: string) {
   useEffect(() => {
     if (!listId) return
 
-    // Initial fetch with item details
-    async function fetchItems() {
-      console.log('[ListItems] fetchItems called, listId:', listId)
-      try {
-        setLoading(true)
-        setError(null)
+    let channel: ReturnType<typeof supabase.channel> | null = null
+    let reconnectTimeout: ReturnType<typeof setTimeout> | null = null
+    let reconnectAttempts = 0
+    let isActive = true
+    let channelHasSubscribedOnce = false
+    let needsResync = false
+    let lastSuccessfulSyncAt = 0
 
-        // Check authentication status
-        const {
-          data: { user },
-          error: authError,
-        } = await supabase.auth.getUser()
-        console.log('Current user:', user?.id, 'Auth error:', authError)
+    // Initial fetch with item details
+    async function fetchItems({ silent, suppressError }: FetchItemsParams) {
+      debugLog('[ListItems] fetchItems called, listId:', listId)
+      try {
+        if (!silent) {
+          setLoading(true)
+          setError(null)
+        }
 
         // First try to fetch list_items without join to test basic access
         const { data: listItemsData, error: listItemsError } = await supabase
@@ -55,144 +100,240 @@ export function useRealtimeListItems(listId: string, userId?: string) {
           throw listItemsError
         }
 
-        console.log(
+        lastSuccessfulSyncAt = Date.now()
+        debugLog(
           '[ListItems] fetchItems success, count:',
           listItemsData?.length
         )
         // Transform database fields (snake_case) to interface fields (camelCase)
-        setItems(
-          listItemsData?.map(item => ({
-            id: item.id,
-            name: item.name,
-            quantity: item.quantity,
-            isCompleted: item.is_completed, // Transform field name
-            notes: item.notes,
-            shoppingListId: item.shopping_list_id, // Transform field name
-            createdBy: item.created_by, // Transform field name
-            createdAt: item.created_at, // Transform field name
-            updatedAt: item.updated_at, // Transform field name
-            item: {
-              id: item.id,
-              name: item.name,
-            },
-          })) || []
-        )
-        console.log('[ListItems] fetchItems finished, loading set to false')
+        setItems(listItemsData?.map(mapDbItemToListItem) || [])
+        debugLog('[ListItems] fetchItems finished, loading set to false')
       } catch (err: unknown) {
         console.error('Full error object:', err)
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to fetch items'
         console.error('Error message:', errorMessage)
-        setError(errorMessage)
+        if (!suppressError) {
+          setError(errorMessage)
+        }
       } finally {
-        setLoading(false)
+        if (!silent) {
+          setLoading(false)
+        }
       }
     }
 
-    fetchItems()
+    function clearReconnectTimer() {
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout)
+        reconnectTimeout = null
+      }
+    }
 
-    // Set up real-time subscription
-    const channel = supabase
-      .channel(`list_items_${listId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'list_items',
-          filter: `shopping_list_id=eq.${listId}`,
-        },
-        async payload => {
-          console.log(
-            '📡 Real-time payload received:',
-            payload.eventType,
-            payload
-          )
+    function shouldRefetchOnVisibilityOrOnline() {
+      if (needsResync) return true
+      if (!lastSuccessfulSyncAt) return true
 
-          if (payload.eventType === 'INSERT') {
-            // Transform the new item to match our expected format
-            const newItem = {
-              id: payload.new.id,
-              name: payload.new.name,
-              quantity: payload.new.quantity,
-              isCompleted: payload.new.is_completed, // Transform field name
-              notes: payload.new.notes,
-              shoppingListId: payload.new.shopping_list_id, // Transform field name
-              createdBy: payload.new.created_by, // Transform field name
-              createdAt: payload.new.created_at, // Transform field name
-              updatedAt: payload.new.updated_at, // Transform field name
-              item: {
+      return Date.now() - lastSuccessfulSyncAt > STALE_REFETCH_THRESHOLD_MS
+    }
+
+    function markNeedsResync() {
+      needsResync = true
+    }
+
+    function scheduleReconnect(reason: string) {
+      if (!isActive || reconnectTimeout) return
+
+      const delayMs = Math.min(1000 * 2 ** reconnectAttempts, 30000)
+      reconnectAttempts += 1
+      debugLog(
+        `[ListItems] Scheduling realtime reconnect in ${delayMs}ms (reason: ${reason}, attempt: ${reconnectAttempts})`
+      )
+
+      reconnectTimeout = setTimeout(() => {
+        reconnectTimeout = null
+        subscribeToRealtime()
+      }, delayMs)
+    }
+
+    function subscribeToRealtime() {
+      if (!isActive) return
+
+      if (channel) {
+        supabase.removeChannel(channel)
+        channel = null
+      }
+
+      channel = supabase
+        .channel(`list_items_${listId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'list_items',
+            filter: `shopping_list_id=eq.${listId}`,
+          },
+          async payload => {
+            debugLog(
+              '📡 Real-time payload received:',
+              payload.eventType,
+              payload
+            )
+
+            if (payload.eventType === 'INSERT') {
+              // Transform the new item to match our expected format
+              const newItem = {
                 id: payload.new.id,
                 name: payload.new.name,
-                category: payload.new.category || null,
-              },
-            }
-            console.log('✅ Adding new item to state:', newItem)
-            setItems(prev => [newItem as ListItem, ...prev])
-          } else if (payload.eventType === 'UPDATE') {
-            // Update existing item with proper field name transformation
-            console.log('🔄 Updating item in state:', payload.new.id)
-            setItems(prev =>
-              prev.map(item => {
-                if (item.id === payload.new.id) {
-                  const updatedItem = {
-                    ...item,
-                    id: payload.new.id,
-                    name: payload.new.name,
-                    quantity: payload.new.quantity,
-                    isCompleted: payload.new.is_completed, // Transform field name
-                    notes: payload.new.notes,
-                    createdAt: payload.new.created_at,
-                    updatedAt: payload.new.updated_at,
-                    shoppingListId: payload.new.shopping_list_id,
-                    createdBy: payload.new.created_by,
-                    item: {
+                quantity: payload.new.quantity,
+                isCompleted: payload.new.is_completed, // Transform field name
+                notes: payload.new.notes,
+                shoppingListId: payload.new.shopping_list_id, // Transform field name
+                createdBy: payload.new.created_by, // Transform field name
+                createdAt: payload.new.created_at, // Transform field name
+                updatedAt: payload.new.updated_at, // Transform field name
+                item: {
+                  id: payload.new.id,
+                  name: payload.new.name,
+                  category: payload.new.category || null,
+                },
+              }
+              debugLog('✅ Adding new item to state:', newItem)
+              setItems(prev => {
+                // Ignore duplicate realtime insert for an item we already have.
+                if (prev.some(item => item.id === newItem.id)) {
+                  return prev
+                }
+
+                // Replace matching optimistic temp item when realtime confirms insert.
+                const tempItemIndex = prev.findIndex(
+                  item =>
+                    item.id.startsWith('temp-') &&
+                    item.name === newItem.name &&
+                    item.quantity === newItem.quantity &&
+                    item.shoppingListId === newItem.shoppingListId
+                )
+
+                if (tempItemIndex !== -1) {
+                  const next = [...prev]
+                  next[tempItemIndex] = newItem as ListItem
+                  return next
+                }
+
+                return [newItem as ListItem, ...prev]
+              })
+            } else if (payload.eventType === 'UPDATE') {
+              // Update existing item with proper field name transformation
+              debugLog('🔄 Updating item in state:', payload.new.id)
+              setItems(prev =>
+                prev.map(item => {
+                  if (item.id === payload.new.id) {
+                    const updatedItem = {
+                      ...item,
                       id: payload.new.id,
                       name: payload.new.name,
-                      category: payload.new.category || null,
-                    },
+                      quantity: payload.new.quantity,
+                      isCompleted: payload.new.is_completed, // Transform field name
+                      notes: payload.new.notes,
+                      createdAt: payload.new.created_at,
+                      updatedAt: payload.new.updated_at,
+                      shoppingListId: payload.new.shopping_list_id,
+                      createdBy: payload.new.created_by,
+                      item: {
+                        id: payload.new.id,
+                        name: payload.new.name,
+                        category: payload.new.category || null,
+                      },
+                    }
+                    debugLog('✅ Item updated:', updatedItem)
+                    return updatedItem
                   }
-                  console.log('✅ Item updated:', updatedItem)
-                  return updatedItem
-                }
-                return item
-              })
-            )
-          } else if (payload.eventType === 'DELETE') {
-            console.log('🗑️ Deleting item from state:', payload.old.id)
-            setItems(prev => prev.filter(item => item.id !== payload.old.id))
+                  return item
+                })
+              )
+            } else if (payload.eventType === 'DELETE') {
+              debugLog('🗑️ Deleting item from state:', payload.old.id)
+              setItems(prev => prev.filter(item => item.id !== payload.old.id))
+            }
           }
-        }
-      )
-      .subscribe(status => {
-        console.log('📡 Subscription status:', status)
-      })
+        )
+        .subscribe(status => {
+          debugLog('📡 Subscription status:', status)
+
+          if (status === 'SUBSCRIBED') {
+            reconnectAttempts = 0
+            clearReconnectTimer()
+
+            if (!channelHasSubscribedOnce) {
+              channelHasSubscribedOnce = true
+              return
+            }
+
+            if (needsResync) {
+              needsResync = false
+              void fetchItems({ silent: true, suppressError: true })
+            }
+            return
+          }
+
+          if (
+            status === 'CHANNEL_ERROR' ||
+            status === 'TIMED_OUT' ||
+            status === 'CLOSED'
+          ) {
+            markNeedsResync()
+            scheduleReconnect(status)
+          }
+        })
+    }
+
+    fetchItems({ silent: false, suppressError: false })
+    subscribeToRealtime()
 
     // Add tab visibility handler
     const handleVisibilityChange = () => {
-      console.log(
-        '[ListItems] visibilitychange event:',
-        document.visibilityState
-      )
+      debugLog('[ListItems] visibilitychange event:', document.visibilityState)
       if (document.visibilityState === 'visible') {
-        console.log('[ListItems] Tab became visible, refetching items...')
-        setLoading(true)
-        setError(null)
-        fetchItems()
+        if (shouldRefetchOnVisibilityOrOnline()) {
+          debugLog('[ListItems] Tab became visible, refetching items...')
+          needsResync = false
+          void fetchItems({ silent: true, suppressError: true })
+        }
       }
     }
+
+    const handleOnline = () => {
+      debugLog('[ListItems] Browser is online, forcing realtime reconnect')
+      reconnectAttempts = 0
+      clearReconnectTimer()
+      subscribeToRealtime()
+
+      if (shouldRefetchOnVisibilityOrOnline()) {
+        needsResync = false
+        void fetchItems({ silent: true, suppressError: true })
+      }
+    }
+
     document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('online', handleOnline)
 
     return () => {
-      supabase.removeChannel(channel)
+      isActive = false
+      clearReconnectTimer()
+      if (channel) {
+        supabase.removeChannel(channel)
+        channel = null
+      }
       document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('online', handleOnline)
     }
   }, [listId])
 
   // Add item function - with optimistic updates for immediate UI feedback
   const addItem = async (name: string, quantity = 1) => {
     try {
-      console.log('🔄 Adding item:', { name, quantity, listId, userId })
+      debugLog('🔄 Adding item:', { name, quantity, listId, userId })
 
       // Create a temporary ID for optimistic update
       const tempId = `temp-${Date.now()}-${Math.random()}`
@@ -234,7 +375,7 @@ export function useRealtimeListItems(listId: string, userId?: string) {
         throw error
       }
 
-      console.log('✅ Item added successfully:', data)
+      debugLog('✅ Item added successfully:', data)
 
       // Replace temp item with real item from database
       if (data?.[0]) {
@@ -253,9 +394,13 @@ export function useRealtimeListItems(listId: string, userId?: string) {
             name: data[0].name,
           },
         }
-        setItems(prev =>
-          prev.map(item => (item.id === tempId ? realItem : item))
-        )
+        setItems(prev => {
+          const withoutTemp = prev.filter(item => item.id !== tempId)
+          if (withoutTemp.some(item => item.id === realItem.id)) {
+            return withoutTemp
+          }
+          return [realItem, ...withoutTemp]
+        })
       }
     } catch (err: unknown) {
       console.error('❌ Add item catch block:', err)
@@ -269,7 +414,7 @@ export function useRealtimeListItems(listId: string, userId?: string) {
   // Toggle completion
   const toggleComplete = async (itemId: string, isCompleted: boolean) => {
     try {
-      console.log('🔄 Toggling completion:', {
+      debugLog('🔄 Toggling completion:', {
         itemId,
         isCompleted,
         newState: !isCompleted,
@@ -310,7 +455,7 @@ export function useRealtimeListItems(listId: string, userId?: string) {
         throw error
       }
 
-      console.log('✅ Item toggled successfully:', data)
+      debugLog('✅ Item toggled successfully:', data)
       // UI is already updated optimistically, no need to wait for real-time
     } catch (err: unknown) {
       console.error('❌ Toggle completion catch block:', err)
@@ -343,7 +488,7 @@ export function useRealtimeListItems(listId: string, userId?: string) {
         throw error
       }
 
-      console.log('✅ Item deleted successfully')
+      debugLog('✅ Item deleted successfully')
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to delete item'
